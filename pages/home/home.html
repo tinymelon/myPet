@@ -1,14 +1,81 @@
+<div id="menu_wrapper">
+  <div class="menu_point">123</div>
+</div>
+
 <ion-header>
-  <ion-navbar>
-    <ion-title>
-      Ionic Blank
-    </ion-title>
-  </ion-navbar>
+  <ion-toolbar>
+    <div id="open_menu"></div>
+  </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+<ion-content>
+  <div class="section_wrapper without_header active">
+    <div class="select_type clearfix">
+      <label class="dog"><input type="checkbox" name="type" value="dog"></label>
+      <label class="cat"><input type="checkbox" name="type" value="cat"></label>
+    </div>
+    <div class="inputs_wrapper">
+      <div class="input_wrapper">
+        <label>Кличка</label>
+        <input type="text">
+      </div>
+      <div class="input_wrapper">
+        <label>Порода</label>
+        <select>
+          <option value="1">Йорик</option>
+          <option value="2">Морик</option>
+          <option value="3">Горка</option>
+          <option value="4">Морка</option>
+        </select>
+      </div>
+      <div class="input_wrapper">
+        <div class="get_image_wrapper">
+          <input type="file" accept="image/*" capture="camera" class="get_image">
+        </div>
+      </div>
+      <div class="input_wrapper">
+        <label>Дата рождения</label>
+        <input type="date">
+      </div>
+      <div class="input_wrapper">
+        <label>Вес</label>
+        <input type="text">
+      </div>
+      <div class="input_wrapper">
+        <label>Дата последней вакцинации</label>
+        <input type="date">
+      </div>
+      <div class="input_wrapper">
+        <label>Дата последней обработки от глистов</label>
+        <input type="date">
+      </div>
+      <div class="input_wrapper">
+        <label>Какой препарат использовали в последний раз</label>
+        <input type="text">
+      </div>
+      <div class="input_wrapper with_checkbox">
+        <label>Напомнить о следующей обработке</label>
+        <ion-toggle color="secondary" checked="false"></ion-toggle>
+        <input type="date">
+      </div>
+      <div class="input_wrapper">
+        <label>Чип и клеймо</label>
+        <input type="text">
+      </div>
+    </div>
+  </div>
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="footer_left">
+      <div class="footer_nav icon1"></div>
+      <div class="footer_nav icon2"></div>
+    </div>
+    <div class="footer_right">
+      <div class="footer_nav icon3"></div>
+      <div class="footer_nav icon4"></div>
+    </div>
+    <div class="footer_nav_center"></div>
+  </ion-toolbar>
+</ion-footer>
