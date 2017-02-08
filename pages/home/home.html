@@ -1,5 +1,11 @@
 <div id="menu_wrapper">
-  <div class="menu_point">123</div>
+  <div class="menu_point">Личный кабинет</div>
+  <div class="menu_point">Акции у партнеров</div>
+  <div class="menu_point">Зоомагазины</div>
+  <div class="menu_point">Ветеринарные клиники</div>
+  <div class="menu_point">Как пользоваться приложением</div>
+  <div class="menu_point">Пользовательское соглашение</div>
+  <div class="menu_point">Мы в сети</div>
 </div>
 
 <ion-header>
@@ -9,59 +15,102 @@
 </ion-header>
 
 <ion-content>
-  <div class="section_wrapper without_header active">
-    <div class="select_type clearfix">
-      <label class="dog"><input type="checkbox" name="type" value="dog"></label>
-      <label class="cat"><input type="checkbox" name="type" value="cat"></label>
-    </div>
-    <div class="inputs_wrapper">
-      <div class="input_wrapper">
-        <label>Кличка</label>
-        <input type="text">
-      </div>
-      <div class="input_wrapper">
-        <label>Порода</label>
-        <select>
-          <option value="1">Йорик</option>
-          <option value="2">Морик</option>
-          <option value="3">Горка</option>
-          <option value="4">Морка</option>
-        </select>
-      </div>
-      <div class="input_wrapper">
-        <div class="get_image_wrapper">
-          <input type="file" accept="image/*" capture="camera" class="get_image">
+  <div class="section_wrapper without_header screen_login brown_bg no_footer">
+    <form action="/api/login" id="login_form">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Телефон</label>
+          <input type="text" name="phone">
+        </div>
+        <div class="input_wrapper">
+          <label>Пароль</label>
+          <input type="password" name="pwd">
         </div>
       </div>
-      <div class="input_wrapper">
-        <label>Дата рождения</label>
-        <input type="date">
+      <div class="submit_button brown_btn">Войти</div>
+    </form>
+    <div class="forgot_pass">Забыли пароль?</div>
+    <div class="reg_btn brown_btn">Зарегистрироваться</div>
+  </div>
+  <div class="section_wrapper screen_pet_card">
+    <div class="nav_header">
+      <div class="back_btn"></div>
+      <div class="header_text">Анкета Питомца</div>
+    </div>
+    <form action="/api/pet">
+      <div class="select_type clearfix">
+        <label class="dog"><input type="checkbox" name="type" value="dog"></label>
+        <label class="cat"><input type="checkbox" name="type" value="cat"></label>
       </div>
-      <div class="input_wrapper">
-        <label>Вес</label>
-        <input type="text">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Кличка</label>
+          <input type="text" name="name">
+        </div>
+        <div class="input_wrapper">
+          <label>Порода</label>
+          <select name="poroda">
+            <option value=""></option>
+            <option value="1">Йорик</option>
+            <option value="2">Морик</option>
+            <option value="3">Горка</option>
+            <option value="4">Морка</option>
+          </select>
+        </div>
+        <div class="input_wrapper">
+          <div class="get_image_wrapper">
+            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+          </div>
+        </div>
+        <div class="input_wrapper">
+          <label>Дата рождения</label>
+          <input type="date" name="birthdate">
+        </div>
+        <div class="input_wrapper">
+          <label>Вес</label>
+          <input type="text" name="weight">
+        </div>
+        <div class="input_wrapper">
+          <label>Дата последней вакцинации</label>
+          <input type="date" name="vakc_date">
+        </div>
+        <div class="input_wrapper">
+          <label>Дата последней обработки от глистов</label>
+          <input type="date" name="glist_date">
+        </div>
+        <div class="input_wrapper">
+          <label>Какой препарат использовали в последний раз</label>
+          <input type="text" name="glist_medicine">
+        </div>
+        <div class="input_wrapper with_checkbox">
+          <label>Напомнить о следующей обработке</label>
+          <ion-toggle color="secondary" checked="false"></ion-toggle>
+          <input type="date" name="remind_date">
+        </div>
+        <div class="input_wrapper">
+          <label>Чип и клеймо</label>
+          <input type="text" name="pet_id">
+        </div>
       </div>
-      <div class="input_wrapper">
-        <label>Дата последней вакцинации</label>
-        <input type="date">
-      </div>
-      <div class="input_wrapper">
-        <label>Дата последней обработки от глистов</label>
-        <input type="date">
-      </div>
-      <div class="input_wrapper">
-        <label>Какой препарат использовали в последний раз</label>
-        <input type="text">
-      </div>
-      <div class="input_wrapper with_checkbox">
-        <label>Напомнить о следующей обработке</label>
-        <ion-toggle color="secondary" checked="false"></ion-toggle>
-        <input type="date">
-      </div>
-      <div class="input_wrapper">
-        <label>Чип и клеймо</label>
-        <input type="text">
-      </div>
+      <div class="submit_button">Подтвердить</div>
+    </form>
+  </div>
+  <div class="section_wrapper screen_event">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="pet_card"></div>
+      <div class="header_text">Правила акции</div>
+    </div>
+    <div class="event_block">
+      <div class="event_header">Купи продукт компании bayer&nbsp;&mdash;<br>получи баллы</div>
+      <div class="event_image event1"></div>
+    </div>
+    <div class="event_block">
+      <div class="event_header">выполняй действия в приложении&nbsp;&mdash;<br>получи баллы</div>
+      <div class="event_image event2"></div>
+    </div>
+    <div class="event_block">
+      <div class="event_header">наполни сердце полностью&nbsp;&mdash;<br>получи приз!</div>
+      <div class="event_image event3"></div>
     </div>
   </div>
 </ion-content>
@@ -73,8 +122,8 @@
       <div class="footer_nav icon2"></div>
     </div>
     <div class="footer_right">
-      <div class="footer_nav icon3"></div>
-      <div class="footer_nav icon4"></div>
+      <div class="footer_nav icon3 switch_screen" data-to="pet_card"></div>
+      <div class="footer_nav icon4 switch_screen" data-to="event"></div>
     </div>
     <div class="footer_nav_center"></div>
   </ion-toolbar>
