@@ -16,7 +16,7 @@
 
 <ion-content>
   <div class="section_wrapper without_header screen_login brown_bg no_footer">
-    <form action="/api/login" id="login_form">
+    <form id="login_form">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Телефон</label>
@@ -30,14 +30,46 @@
       <div class="submit_button brown_btn">Войти</div>
     </form>
     <div class="forgot_pass">Забыли пароль?</div>
-    <div class="reg_btn brown_btn">Зарегистрироваться</div>
+    <div class="reg_btn brown_btn switch_screen" data-to="register">Зарегистрироваться</div>
+  </div>
+  <div class="section_wrapper without_header screen_register brown_bg no_footer">
+    <form id="register_form">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Телефон</label>
+          <input type="text" name="phone">
+        </div>
+        <div class="input_wrapper">
+          <label>Пароль</label>
+          <input type="text" name="pwd">
+        </div>
+        <div class="input_wrapper">
+          <label>ФИО</label>
+          <input type="text" name="fio">
+        </div>
+        <div class="input_wrapper">
+          <label>
+            <input type="checkbox" name="agreement">
+            <span>Согласен с <a href="#">условиями</a> пользовательского соглашения.</span>
+          </label>
+        </div>
+        <div class="input_wrapper">
+          <label>
+            <input type="checkbox" name="data_process">
+            <span>Подтверждаю, что ознакомлен и согласен с соглашением на обработку персональных данных.</span>
+          </label>
+        </div>
+      </div>
+      <div class="submit_button brown_btn">Зарегистрироваться</div>
+    </form>
+    <div class="forgot_pass">Забыли пароль?</div>
   </div>
   <div class="section_wrapper screen_pet_card">
     <div class="nav_header">
       <div class="back_btn"></div>
       <div class="header_text">Анкета Питомца</div>
     </div>
-    <form action="/api/pet">
+    <form id="add_pet">
       <div class="select_type clearfix">
         <label class="dog"><input type="checkbox" name="type" value="dog"></label>
         <label class="cat"><input type="checkbox" name="type" value="cat"></label>
@@ -112,6 +144,136 @@
       <div class="event_header">наполни сердце полностью&nbsp;&mdash;<br>получи приз!</div>
       <div class="event_image event3"></div>
     </div>
+    <div class="event_block">
+      <div class="full_rules">Полные правила акции</div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_add_event">
+    <div class="nav_header">
+      <div class="header_text">Добавить событие</div>
+    </div>
+    <div class="add_events_wrapper">
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 1}'>
+        <div>Вакцинация</div>
+      </div>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 2}'>
+        <div>Обработка от глистов</div>
+      </div>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 3}'>
+        <div>Обработка от клещей</div>
+      </div>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 4}'>
+        <div>Визит к грумеру</div>
+      </div>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 5}'>
+        <div>Покупка корма</div>
+      </div>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 6}'>
+        <div>Другое</div>
+      </div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_event_form">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="add_event"></div>
+      <div class="header_text">Добавить событие</div>
+    </div>
+    <form id="add_event">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Процедура</label>
+          <select name="type">
+            <option value=""></option>
+            <option value="1">Вакцинация</option>
+            <option value="2">Обработка от глистов</option>
+            <option value="3">Обработка от клещей</option>
+            <option value="4">Визит к грумеру</option>
+            <option value="5">Покупка корма</option>
+            <option value="6">Другое</option>
+          </select>
+        </div>
+        <div class="input_wrapper">
+          <label>Дата</label>
+          <input type="date" name="date">
+        </div>
+        <div class="input_wrapper">
+          <label>Препарат</label>
+          <input type="text" name="preparat">
+        </div>
+        <div class="input_wrapper">
+          <label>Питомец</label>
+          <select name="pet">
+            <option value=""></option>
+            <option value="1">Йорик</option>
+            <option value="2">Морик</option>
+            <option value="3">Цой</option>
+          </select>
+        </div>
+        <div class="input_wrapper with_checkbox">
+          <label>Напомнить мне</label>
+          <ion-toggle color="secondary" checked="false"></ion-toggle>
+          <input type="date" name="remind_date">
+        </div>
+      </div>
+      <div class="submit_button">Подтвердить</div>
+    </form>
+  </div>
+  <div class="section_wrapper screen_personal">
+    <div class="nav_header">
+      <div class="header_text">Личный кабинет</div>
+    </div>
+    <form id="edit_personal">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>ФИО владельца</label>
+          <input type="text" name="fio">
+        </div>
+        <div class="input_wrapper">
+          <div class="get_image_wrapper">
+            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+          </div>
+        </div>
+        <div class="input_wrapper">
+          <label>Телефон</label>
+          <input type="text" name="phone">
+        </div>
+        <div class="input_wrapper">
+          <label>E-mail</label>
+          <input type="text" name="email">
+        </div>
+        <div class="inline_input">
+          <div class="input_wrapper">
+            <label>Регион</label>
+            <input type="text" name="region">
+          </div>
+          <div class="input_wrapper">
+            <label>Населенный пункт</label>
+            <input type="text" name="city">
+          </div>
+          <div class="input_wrapper">
+            <label>Улица</label>
+            <input type="text" name="street">
+          </div>
+          <div class="input_wrapper">
+            <label>Дом</label>
+            <input type="text" name="house">
+          </div>
+          <div class="input_wrapper">
+            <label>Корпус</label>
+            <input type="text" name="building">
+          </div>
+          <div class="input_wrapper">
+            <label>Квартира/офис</label>
+            <input type="text" name="cell">
+          </div>
+        </div>
+        <div class="input_wrapper">
+          <label>Сменить пароль</label>
+          <input type="password" name="pwd">
+        </div>
+      </div>
+      <div class="submit_button">Подтвердить</div>
+    </form>
   </div>
 </ion-content>
 
@@ -125,6 +287,6 @@
       <div class="footer_nav icon3 switch_screen" data-to="pet_card"></div>
       <div class="footer_nav icon4 switch_screen" data-to="event"></div>
     </div>
-    <div class="footer_nav_center"></div>
+    <div class="footer_nav_center switch_screen" data-to="add_event"></div>
   </ion-toolbar>
 </ion-footer>
