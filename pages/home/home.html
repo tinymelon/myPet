@@ -1,6 +1,6 @@
 <div id="menu_wrapper">
-  <div class="menu_point">Личный кабинет</div>
-  <div class="menu_point">Акции у партнеров</div>
+  <div class="menu_point switch_screen" data-to="personal">Личный кабинет</div>
+  <div class="menu_point switch_screen" data-to="partners_events">Акции у партнеров</div>
   <div class="menu_point">Зоомагазины</div>
   <div class="menu_point">Ветеринарные клиники</div>
   <div class="menu_point">Как пользоваться приложением</div>
@@ -127,9 +127,9 @@
       <div class="submit_button">Подтвердить</div>
     </form>
   </div>
-  <div class="section_wrapper screen_event">
+  <div class="section_wrapper screen_event_rules">
     <div class="nav_header">
-      <div class="back_btn switch_screen" data-to="pet_card"></div>
+      <div class="back_btn switch_screen" data-to="event_main"></div>
       <div class="header_text">Правила акции</div>
     </div>
     <div class="event_block">
@@ -275,18 +275,193 @@
       <div class="submit_button">Подтвердить</div>
     </form>
   </div>
+  <div class="section_wrapper screen_partners_events">
+    <div class="nav_header">
+      <div class="header_text">Акции у партнеров</div>
+    </div>
+    <div class="partners_events">
+      <img src="assets/images/akc1.png" alt="" class="switch_sceen" data-to="partners_map">
+      <img src="assets/images/akc2.png" alt="" class="switch_sceen" data-to="partners_map">
+      <img src="assets/images/akc3.png" alt="" class="switch_sceen" data-to="partners_map">
+    </div>
+  </div>
+  <div class="section_wrapper screen_partners_map">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="partners_events"></div>
+      <div class="header_text">Акции у партнеров</div>
+    </div>
+    <div class="partners_map_content">
+      <div class="screen_content_header">ближайший магазин</div>
+      <div class="partners_map_logo"><img src="assets/images/!logo_example.png"></div>
+      <div class="partners_text text_wall">
+        <p>Специальное пред&shy;ложение для счаст&shy;ливых обладателей собак! Запас&shy;айтесь вкус&shy;нейшими кормами от самых попу&shy;лярных тор&shy;говых марок по луч&shy;шим ценам!
+          Радовать любим&shy;ца теперь еще про&shy;ще и выгоднее вмес&shy;те с «Бетховен».</p>
+        <p>Бонусы за акционный товар НАЧИС&shy;ЛЯЮТСЯ. Пред&shy;ложение действи&shy;тельно, пока товар есть в наличии.</p>
+      </div>
+    </div>
+    <div id="partners_map"></div>
+  </div>
+  <div class="section_wrapper screen_disease">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="dis_list"></div>
+      <div class="header_text">Виды болезней</div>
+    </div>
+    <div class="screen_content_header">болезнь 1</div>
+    <img src="assets/images/!bol_example.png" alt="" class="disease_image">
+    <div class="disease_text text_wall">
+      <p>Эндокринные заболевания возникают при различных нарушениях работы эндокринных желёз, которые не имеют выводных протоков, ввиду чего выделяют гормоны сразу в кровь. К таким железам следует отнести щитовидную железу, эпифиз, гипофиз, ок&shy;олощитовидные железы, вилочковую железу, надпочечники, половые железы и секреторные отделы поджелудочной железы. Эндокринные заболевания у собак могут про&shy;т&shy;екать в двух формах: с повы&shy;шением количества выделяемых в кровь гормонов и с понижением. Такие заболевания достаточно сложно диагностировать, из-за чего выставляют диагнозы домашним питомцам, как правило, на последних стадиях, когда вылечить собаку практически нет шансов.</p>
+      <p>Инфекционные заболевания связаны с непосредственным попаданием в организм питомца болезнет&shy;в&shy;орного микр&shy;о&shy;ба. Но следует отметить, что заражение и развитие инфекционного процесса возможно только лишь при восприимчивости организма собаки к данному микр&shy;о&shy;бу. В противном случае, ничего не произойдёт.</p>
+    </div>
+  </div>
+  <div class="section_wrapper screen_dis_list">
+    <div class="nav_header">
+      <div class="header_text">Виды болезней</div>
+    </div>
+    <div class="dis_list_wrapper">
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь1</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь2</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь3</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь4</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь5</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь6</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь7</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь8</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь9</div>
+      <div class="dis_list_item switch_screen" data-to="disease">Болезнь10</div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_add_buy">
+    <div class="nav_header">
+      <div class="header_text">Добавление чека</div>
+    </div>
+    <form id="add_buy">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Укажите препарат</label>
+          <input type="text" name="title">
+        </div>
+        <div class="input_wrapper">
+          <div class="get_image_wrapper">
+            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+          </div>
+        </div>
+      </div>
+      <div class="submit_button">Добавить чек</div>
+    </form>
+  </div>
+  <div class="section_wrapper screen_feedback">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="event_main"></div>
+      <div class="header_text">Обратная связь</div>
+    </div>
+    <form id="feedback">
+      <div class="inputs_wrapper">
+        <div class="input_wrapper">
+          <label>Категория вопроса</label>
+          <select name="type">
+            <option value=""></option>
+            <option value="1">Йорик</option>
+            <option value="2">Морик</option>
+            <option value="3">Дарик</option>
+          </select>
+        </div>
+        <div class="input_wrapper">
+          <label>Вопрос</label>
+          <textarea name="question"></textarea>
+        </div>
+      </div>
+      <div class="submit_button">Добавить чек</div>
+    </form>
+  </div>
+  <div class="section_wrapper screen_event_main brown_bg without_header">
+    <div class="event_main_content">
+      <div class="event_main_header screen_content_header">Акция</div>
+      <div class="event_main_image"><img src="assets/images/golden_heart.png" alt=""></div>
+      <div class="event_main_list">
+        <div class="event_list_item switch_screen" data-to="">«золотое сердце» в баллах</div>
+        <div class="event_list_item switch_screen" data-to="add_buy">добавить чек</div>
+        <div class="event_list_item switch_screen" data-to="gift_list">подарки акции</div>
+        <div class="event_list_item switch_screen" data-to="event_rules">правила</div>
+        <div class="event_list_item switch_screen" data-to="feedback">обратная связь</div>
+      </div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_pet_list">
+    <div class="nav_header">
+      <div class="header_text">Мои питомцы</div>
+    </div>
+    <div class="pet_list_wrapper">
+      <div class="pet_item">
+        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
+        <div class="pet_name">Николай</div>
+      </div>
+      <div class="pet_item">
+        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
+        <div class="pet_name">Фёдор</div>
+      </div>
+      <div class="pet_item">
+        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
+        <div class="pet_name">Мыкола</div>
+      </div>
+      <div class="fake_submit_button switch_screen" data-to="pet_card">Добавить питомца</div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_gift_list">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="event_main"></div>
+      <div class="header_text">Подарки акции</div>
+    </div>
+    <div class="gift_list_header">Ваше сердце заполнено на 35%</div>
+    <div class="gift_list_wrapper">
+      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
+        <div class="gift_item_photo"><img src="assets/images/gift_photo.png"></div>
+        <div class="gift_item_title">
+          <small>Фоторамка</small>
+          <b>40%</b>
+        </div>
+      </div>
+      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
+        <div class="gift_item_photo"><img src="assets/images/gift_miska.png"></div>
+        <div class="gift_item_title">
+          <small>Миска</small>
+          <b>75%</b>
+        </div>
+      </div>
+      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
+        <div class="gift_item_photo"><img src="assets/images/gift_heart.png"></div>
+        <div class="gift_item_title">
+          <small>Кулон<br>&laquo;Золотое сердце&raquo;</small>
+          <b>100%</b>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section_wrapper screen_gift_miska">
+    <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="gift_list"></div>
+      <div class="header_text">Подарки акции</div>
+    </div>
+    <div class="gift_photo"><img src="assets/images/gift_miska.png"></div>
+    <div class="gift_title">Миска</div>
+    <div class="gift_status_text">Ваше сердце заполнено на 75%</div>
+    <div class="gift_status_image">
+      <div class="gift_status_overlay"></div>
+      <div class="gift_status_percent">35%</div>
+    </div>
+    <div class="fake_submit_button">Заказать</div>
+  </div>
 </ion-content>
 
 <ion-footer>
   <ion-toolbar>
     <div class="footer_left">
-      <div class="footer_nav icon1"></div>
-      <div class="footer_nav icon2"></div>
+      <div class="footer_nav icon1 switch_screen" data-to="dis_list"></div>
+      <div class="footer_nav icon2 switch_screen" data-to="add_event"></div>
     </div>
     <div class="footer_right">
-      <div class="footer_nav icon3 switch_screen" data-to="pet_card"></div>
-      <div class="footer_nav icon4 switch_screen" data-to="event"></div>
+      <div class="footer_nav icon3 switch_screen" data-to="pet_list"></div>
+      <div class="footer_nav icon4 switch_screen" data-to="event_main"></div>
     </div>
-    <div class="footer_nav_center switch_screen" data-to="add_event"></div>
+    <div class="footer_nav_center switch_screen" data-to="add_buy"></div>
   </ion-toolbar>
 </ion-footer>

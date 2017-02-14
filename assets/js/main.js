@@ -1,4 +1,5 @@
 var API_URL = 'https://growthof.me/heart';
+var APP_DATA = {};
 
 document.addEventListener("deviceready", function() {
   cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
@@ -25,8 +26,9 @@ $(document).ready(function() {
 
     sendRequest('/user/login', data, 'post', function(d) {
       if (d.result && d.result.token) {
-        window.localStorage.setItem('_token', d.result.token);
-        switchTo('pet_card');
+        APP_DATA.token = d.result.token;
+        window.localStorage.setItem('_token', APP_DATA.token);
+        switchTo('event_main');
       } else {
         console.log(d);
         alert('Login error');
@@ -71,9 +73,11 @@ $(document).ready(function() {
         to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
       }
     }
-
-    $('.section_wrapper').removeClass('active');
-    to_elem.addClass('active');
+    setTimeout(function() {
+      $('.section_wrapper').removeClass('active');
+      to_elem.addClass('active');
+      $('#menu_wrapper').removeClass('active');
+    }, 100);
   }
 
   function sendRequest(path, params, method, callback) {
@@ -99,5 +103,10 @@ $(document).ready(function() {
     });
   }
 
-  switchTo('login');
+  if (window.localStorage.getItem('_token')) {
+    APP_DATA.token = window.localStorage.getItem('_token');
+    switchTo('event_main');
+  } else {
+    switchTo('login');
+  }
 });
