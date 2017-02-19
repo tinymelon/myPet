@@ -3,6 +3,40 @@ var APP_DATA = {};
 
 document.addEventListener("deviceready", function() {
   cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
+  $('body').on('touchend', '.get_image_wrapper', function(e) {
+    e.preventDefault();
+    var _this = $(this);
+    var inp = _this.find('input');
+    function fail (err) {
+      IonicAlert('Ошибка', JSON.stringify(err));
+    }
+    navigator.camera.getPicture(function(imageData) {
+      var options = new FileUploadOptions();
+      options.fileKey = "file";
+      options.fileName = "image.jpg";
+      options.mimeType = "image/jpeg";
+      options.chunkedMode = false;
+
+      var params = {};
+      params.token = APP_DATA.token;
+
+      options.params = params;
+      function win (response) {
+        var d;
+        try {
+          d = JSON.parse(response.response);
+        } catch (e) {
+          console.log(e);
+        }
+        var url = d.result;
+        inp.val(url);
+        _this.css('background-image', 'url("' + url + '")');
+      }
+
+      var ft = new FileTransfer();
+      ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, fail, options);
+    }, fail);
+  })
 }, false);
 
 $(document).ready(function() {
@@ -19,41 +53,45 @@ $(document).ready(function() {
     switchTo(screen, params);
   }).on('submit', 'form', function(e) {
     e.preventDefault();
-  }).on('submit', '#login_form', function(e) {
-    var phone = $(this).find('input[name="phone"]').val();//.replace(/[^0-9.]/g, '');
-    var pwd = $(this).find('input[name="pwd"]').val();
-    var data = 'phone=' + phone + '&pwd=' + pwd;
-
-    sendRequest('/user/login', data, 'post', function(d) {
-      if (d.result && d.result.token) {
-        APP_DATA.token = d.result.token;
-        window.localStorage.setItem('_token', APP_DATA.token);
-        switchTo('event_main');
+    var err = false;
+    $(this).find('.format_phone').each(function(i,e) {
+      $(e).val($(e).val().replace(/[^0-9.]/g, ''));
+    });
+    $(this).find('.required').each(function(i,e) {
+      if ($(e).val() == '') {
+        err = true;
+        $(e).addClass('error');
+      } else {
+        $(e).removeClass('error');
+      }
+    });
+    if (err) {
+      IonicAlert('Ошибка', 'Заполните отмеченные поля');
+      return;
+    }
+    var before = $(this).data('before');
+    if (before && typeof window[before] == 'function') {
+      if (!window[before](this)) return;
+    }
+    var token = APP_DATA.token ? '&token=' + APP_DATA.token : '';
+    var data = $(this).serialize() + token;
+    var _this = this;
+    sendRequest($(this).attr('action'), data, 'post', function(d) {
+      var success = $(_this).data('success');
+      var to = $(_this).data('to');
+      if (d.result && (d.result.length || Object.keys(d.result).length)) {
+        if (success && typeof window[success] == 'function') {
+          if (!window[success](d)) return;
+        }
+        if (to) switchTo(to);
       } else {
         console.log(d);
-        alert('Login error');
+        IonicAlert('Ошибка', d.system.msg);
       }
     })
-  }).on('submit', '#register_form', function(e) {
-    var phone = $(this).find('input[name="phone"]').val().replace(/[^0-9.]/g, '');
-    var pwd = $(this).find('input[name="pwd"]').val();
-    var fio = $(this).find('input[name="fio"]').val();
-    var data = 'phone=' + phone + '&pwd=' + pwd + '&fio=' + fio;
-    var checkboxes = $(this).find('input[type="checkbox"]');
-
-    if (checkboxes[0].checked && checkboxes[1].checked) {
-      sendRequest('/user/register', data, 'post', function (d) {
-        if (d.result) {
-          switchTo('login');
-        } else {
-          console.log(d);
-          alert('Register error');
-        }
-      });
-    } else {
-      alert('Примите условия пользования приложением');
-    }
   });
+
+
 
   function switchTo(screen, params) {
     var to_elem = $('.screen_' + screen);
@@ -98,15 +136,39 @@ $(document).ready(function() {
       },
       error: function (a,b,c) {
         console.log(a,b,c);
-        alert(c);
+        IonicAlert('Ошибка', c);
       }
     });
   }
 
   if (window.localStorage.getItem('_token')) {
     APP_DATA.token = window.localStorage.getItem('_token');
-    switchTo('event_main');
+    switchTo('add_buy');
   } else {
     switchTo('login');
   }
 });
+
+
+function loginSuccess(d) {
+  if (d.result && d.result.token) {
+    APP_DATA.token = d.result.token;
+    window.localStorage.setItem('_token', APP_DATA.token);
+    return true;
+  } else {
+    console.log(d);
+    IonicAlert('Ошибка', JSON.stringify(d));
+    return false;
+  }
+}
+
+function registerBefore(t) {
+  var checkboxes = $(t).find('input[type="checkbox"]');
+
+  if (checkboxes[0].checked && checkboxes[1].checked) {
+    return true;
+  } else {
+    IonicAlert('Ошибка', 'Примите условия пользования приложением');
+    return false;
+  }
+}

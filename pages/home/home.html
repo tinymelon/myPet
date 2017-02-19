@@ -16,15 +16,15 @@
 
 <ion-content>
   <div class="section_wrapper without_header screen_login brown_bg no_footer">
-    <form id="login_form">
+    <form id="login_form" action="/user/login" data-success="loginSuccess" data-to="event_main">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Телефон</label>
-          <input type="text" name="phone">
+          <input type="text" name="phone" class="format_phone required">
         </div>
         <div class="input_wrapper">
           <label>Пароль</label>
-          <input type="password" name="pwd">
+          <input type="password" name="pwd" class="required">
         </div>
       </div>
       <div class="submit_button brown_btn">Войти</div>
@@ -33,19 +33,19 @@
     <div class="reg_btn brown_btn switch_screen" data-to="register">Зарегистрироваться</div>
   </div>
   <div class="section_wrapper without_header screen_register brown_bg no_footer">
-    <form id="register_form">
+    <form id="register_form" action="/user/register" data-to="login" data-before="registerBefore">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Телефон</label>
-          <input type="text" name="phone">
+          <input type="text" name="phone" class="format_phone required">
         </div>
         <div class="input_wrapper">
           <label>Пароль</label>
-          <input type="text" name="pwd">
+          <input type="text" name="pwd" class="required">
         </div>
         <div class="input_wrapper">
           <label>ФИО</label>
-          <input type="text" name="fio">
+          <input type="text" name="fio" class="required">
         </div>
         <div class="input_wrapper">
           <label>
@@ -91,7 +91,7 @@
         </div>
         <div class="input_wrapper">
           <div class="get_image_wrapper">
-            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+            <input type="hidden" class="get_image" name="photo">
           </div>
         </div>
         <div class="input_wrapper">
@@ -230,12 +230,12 @@
         </div>
         <div class="input_wrapper">
           <div class="get_image_wrapper">
-            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+            <input type="hidden" class="get_image" name="photo">
           </div>
         </div>
         <div class="input_wrapper">
           <label>Телефон</label>
-          <input type="text" name="phone">
+          <input type="text" name="phone" class="format_phone">
         </div>
         <div class="input_wrapper">
           <label>E-mail</label>
@@ -337,12 +337,8 @@
     <form id="add_buy">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
-          <label>Укажите препарат</label>
-          <input type="text" name="title">
-        </div>
-        <div class="input_wrapper">
           <div class="get_image_wrapper">
-            <input type="file" accept="image/*" capture="camera" class="get_image" name="photo">
+            <input type="hidden" class="get_image" name="photo">
           </div>
         </div>
       </div>
