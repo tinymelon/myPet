@@ -12,7 +12,7 @@ document.addEventListener("deviceready", function() {
     }
     navigator.camera.getPicture(function(imageData) {
       var options = new FileUploadOptions();
-      options.fileKey = "file";
+      options.fileKey = "img";
       options.fileName = "image.jpg";
       options.mimeType = "image/jpeg";
       options.chunkedMode = false;
@@ -28,9 +28,13 @@ document.addEventListener("deviceready", function() {
         } catch (e) {
           console.log(e);
         }
-        var url = d.result;
-        inp.val(url);
-        _this.css('background-image', 'url("' + url + '")');
+        if (d.system.code == 0 && d.system.msg != '') {
+          IonicAlert('Ошибка', d.system.msg);
+          if (d.system.msg == 'Unknown user') switchTo('login');
+        }
+        var url = API_URL + "/data/img/" + d.result + ".jpg";
+        inp.val(d.result);
+        _this.css('background-image', 'url("' + url + '")').addClass('active');
       }
 
       var ft = new FileTransfer();
@@ -91,56 +95,6 @@ $(document).ready(function() {
     })
   });
 
-
-
-  function switchTo(screen, params) {
-    var to_elem = $('.screen_' + screen);
-    if (to_elem.hasClass('brown_bg')) $('.content').addClass('brown_bg');
-    else $('.content').removeClass('brown_bg');
-    if (to_elem.hasClass('no_footer')) $('.footer').hide()
-    else $('.footer').show();
-    if (params) {
-      if (typeof params == 'string') {
-        try {
-          params = JSON.parse(params);
-        } catch (e) {
-          console.log(e);
-        }
-      }
-      for (var p in params) {
-        to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
-      }
-    }
-    setTimeout(function() {
-      $('.section_wrapper').removeClass('active');
-      to_elem.addClass('active');
-      $('#menu_wrapper').removeClass('active');
-    }, 100);
-  }
-
-  function sendRequest(path, params, method, callback) {
-    $.ajax({
-      url: API_URL + path,
-      data: params,
-      type: method,
-      success: function(d) {
-        var data = d;
-        if (typeof d == 'string') {
-          try {
-            data = JSON.parse(d);
-          } catch (e) {
-            console.log(e);
-          }
-        }
-        if (typeof callback == 'function') callback(data);
-      },
-      error: function (a,b,c) {
-        console.log(a,b,c);
-        IonicAlert('Ошибка', c);
-      }
-    });
-  }
-
   if (window.localStorage.getItem('_token')) {
     APP_DATA.token = window.localStorage.getItem('_token');
     switchTo('add_buy');
@@ -171,4 +125,57 @@ function registerBefore(t) {
     IonicAlert('Ошибка', 'Примите условия пользования приложением');
     return false;
   }
+}
+
+function switchTo(screen, params) {
+  var to_elem = $('.screen_' + screen);
+  if (to_elem.hasClass('brown_bg')) $('.content').addClass('brown_bg');
+  else $('.content').removeClass('brown_bg');
+  if (to_elem.hasClass('no_footer')) $('.footer').hide()
+  else $('.footer').show();
+  if (params) {
+    if (typeof params == 'string') {
+      try {
+        params = JSON.parse(params);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+    for (var p in params) {
+      to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
+    }
+  }
+  setTimeout(function() {
+    $('.section_wrapper').removeClass('active');
+    to_elem.addClass('active');
+    $('#menu_wrapper').removeClass('active');
+  }, 100);
+}
+
+function sendRequest(path, params, method, callback) {
+  $.ajax({
+    url: API_URL + path,
+    data: params,
+    type: method,
+    success: function(d) {
+      var data = d;
+      if (typeof d == 'string') {
+        try {
+          data = JSON.parse(d);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      if (data.system.code == 0 && data.system.msg != '') {
+        IonicAlert('Ошибка', data.system.msg);
+        if (data.system.msg == 'Unknown user') switchTo('login');
+      } else {
+        if (typeof callback == 'function') callback(data);
+      }
+    },
+    error: function (a,b,c) {
+      console.log(a,b,c);
+      IonicAlert('Ошибка', c);
+    }
+  });
 }

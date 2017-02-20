@@ -269,6 +269,9 @@ label {
   position: relative;
   border-radius: 100%;
 }
+.get_image_wrapper.active {
+  background-size: cover;
+}
 .get_image {
   opacity: 0;
   width: 100%;
