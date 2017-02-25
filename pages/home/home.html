@@ -1,8 +1,8 @@
 <div id="menu_wrapper">
   <div class="menu_point switch_screen" data-to="personal">Личный кабинет</div>
   <div class="menu_point switch_screen" data-to="partners_events">Акции у партнеров</div>
-  <div class="menu_point">Зоомагазины</div>
-  <div class="menu_point">Ветеринарные клиники</div>
+  <div class="menu_point switch_screen" data-to="partners_map" data-function="loadPartnersMap">Зоомагазины</div>
+  <!--<div class="menu_point">Ветеринарные клиники</div>-->
   <div class="menu_point">Как пользоваться приложением</div>
   <div class="menu_point">Пользовательское соглашение</div>
   <div class="menu_point">Мы в сети</div>
@@ -64,15 +64,16 @@
     </form>
     <div class="forgot_pass">Забыли пароль?</div>
   </div>
-  <div class="section_wrapper screen_pet_card">
+  <div class="section_wrapper screen_pet_card" data-to="pet_list">
     <div class="nav_header">
-      <div class="back_btn"></div>
+      <div class="back_btn switch_screen" data-to="pet_list"></div>
       <div class="header_text">Анкета Питомца</div>
     </div>
-    <form id="add_pet">
-      <div class="select_type clearfix">
-        <label class="dog"><input type="checkbox" name="type" value="dog"></label>
-        <label class="cat"><input type="checkbox" name="type" value="cat"></label>
+    <form id="add_pet" action="/pet/save" data-to="pet_list">
+      <input type="hidden" name="id">
+      <div class="select_type clearfix" id="species_selector">
+        <label class="dog"><input type="checkbox" name="species_id" value="2"></label>
+        <label class="cat"><input type="checkbox" name="species_id" value="1"></label>
       </div>
       <div class="inputs_wrapper">
         <div class="input_wrapper">
@@ -81,13 +82,7 @@
         </div>
         <div class="input_wrapper">
           <label>Порода</label>
-          <select name="poroda">
-            <option value=""></option>
-            <option value="1">Йорик</option>
-            <option value="2">Морик</option>
-            <option value="3">Горка</option>
-            <option value="4">Морка</option>
-          </select>
+          <select name="breed_id" id="breed_selector"></select>
         </div>
         <div class="input_wrapper">
           <div class="get_image_wrapper">
@@ -95,36 +90,61 @@
           </div>
         </div>
         <div class="input_wrapper">
-          <label>Дата рождения</label>
-          <input type="date" name="birthdate">
+          <label>Пол</label>
+          <select name="sex_id">
+            <option value=""></option>
+            <option value="0">Девочка</option>
+            <option value="1">Мальчик</option>
+          </select>
         </div>
         <div class="input_wrapper">
+          <label>Дата рождения</label>
+          <input type="date" name="birth_date">
+        </div>
+        <!--<div class="input_wrapper">
           <label>Вес</label>
           <input type="text" name="weight">
-        </div>
+        </div>-->
         <div class="input_wrapper">
           <label>Дата последней вакцинации</label>
-          <input type="date" name="vakc_date">
+          <input type="date" name="last_vacine_date">
         </div>
         <div class="input_wrapper">
           <label>Дата последней обработки от глистов</label>
-          <input type="date" name="glist_date">
+          <input type="date" name="worm_date">
         </div>
         <div class="input_wrapper">
           <label>Какой препарат использовали в последний раз</label>
-          <input type="text" name="glist_medicine">
+          <select type="text" name="worm_drugg_id" id="worm_drug_selector"></select>
         </div>
-        <div class="input_wrapper with_checkbox">
+        <!--<div class="input_wrapper with_checkbox">
           <label>Напомнить о следующей обработке</label>
           <ion-toggle color="secondary" checked="false"></ion-toggle>
           <input type="date" name="remind_date">
+        </div>-->
+        <div class="input_wrapper">
+          <label>Дата последней обработки от клещей</label>
+          <input type="date" name="tick_date">
         </div>
         <div class="input_wrapper">
-          <label>Чип и клеймо</label>
-          <input type="text" name="pet_id">
+          <label>Какой препарат использовали в последний раз</label>
+          <select type="text" name="tick_drugg_id" id="tick_drug_selector"></select>
+        </div>
+        <div class="input_wrapper">
+          <label>Клеймо</label>
+          <input type="text" name="mark">
+        </div>
+        <div class="input_wrapper">
+          <label>Чип</label>
+          <input type="text" name="chip">
+        </div>
+        <div class="input_wrapper">
+          <label>Регион</label>
+          <input type="text" name="region_id">
         </div>
       </div>
       <div class="submit_button">Подтвердить</div>
+      <div class="remove_btn remove_pet" data-action="/pet/delete">Удалить</div>
     </form>
   </div>
   <div class="section_wrapper screen_event_rules">
@@ -148,27 +168,35 @@
       <div class="full_rules">Полные правила акции</div>
     </div>
   </div>
+  <div class="section_wrapper screen_events_list">
+    <div class="nav_header">
+      <div class="header_text">Мои события</div>
+    </div>
+    <div id="events_list_wrapper"></div>
+    <div class="fake_submit_button switch_screen" data-to="add_event">Добавить событие</div>
+  </div>
   <div class="section_wrapper screen_add_event">
     <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="events_list"></div>
       <div class="header_text">Добавить событие</div>
     </div>
     <div class="add_events_wrapper">
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 1}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Вакцинация"}'>
         <div>Вакцинация</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 2}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Обработка от глистов"}'>
         <div>Обработка от глистов</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 3}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Обработка от клещей"}'>
         <div>Обработка от клещей</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 4}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Визит к грумеру"}'>
         <div>Визит к грумеру</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 5}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Покупка корма"}'>
         <div>Покупка корма</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"type": 6}'>
+      <div class="add_event_card switch_screen" data-to="event_form" data-param='{"name": "Другое"}'>
         <div>Другое</div>
       </div>
     </div>
@@ -178,51 +206,50 @@
       <div class="back_btn switch_screen" data-to="add_event"></div>
       <div class="header_text">Добавить событие</div>
     </div>
-    <form id="add_event">
+    <form id="add_event" action="/memento/save" data-to="events_list">
+      <input type="hidden" name="id">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Процедура</label>
-          <select name="type">
+          <select name="name" id="event_name_selector">
             <option value=""></option>
-            <option value="1">Вакцинация</option>
-            <option value="2">Обработка от глистов</option>
-            <option value="3">Обработка от клещей</option>
-            <option value="4">Визит к грумеру</option>
-            <option value="5">Покупка корма</option>
-            <option value="6">Другое</option>
+            <option value="Вакцинация">Вакцинация</option>
+            <option value="Обработка от глистов">Обработка от глистов</option>
+            <option value="Обработка от клещей">Обработка от клещей</option>
+            <option value="Визит к грумеру">Визит к грумеру</option>
+            <option value="Покупка корма">Покупка корма</option>
+            <option value="Другое">Другое</option>
           </select>
         </div>
         <div class="input_wrapper">
           <label>Дата</label>
-          <input type="date" name="date">
+          <input type="datetime-local">
+          <input type="hidden" name="datetime">
         </div>
         <div class="input_wrapper">
           <label>Препарат</label>
-          <input type="text" name="preparat">
+          <input type="text" name="drug">
         </div>
         <div class="input_wrapper">
           <label>Питомец</label>
-          <select name="pet">
-            <option value=""></option>
-            <option value="1">Йорик</option>
-            <option value="2">Морик</option>
-            <option value="3">Цой</option>
-          </select>
+          <select name="pet_id" id="my_pets_selector"></select>
         </div>
         <div class="input_wrapper with_checkbox">
           <label>Напомнить мне</label>
-          <ion-toggle color="secondary" checked="false"></ion-toggle>
-          <input type="date" name="remind_date">
+          <ion-toggle color="secondary" checked="false" id="add_event_notify"></ion-toggle>
+          <input type="datetime-local" disabled>
+          <input type="hidden" name="notify" id="is_notify_value">
         </div>
       </div>
       <div class="submit_button">Подтвердить</div>
+      <div class="remove_btn remove_event" data-action="/memento/delete">Удалить</div>
     </form>
   </div>
   <div class="section_wrapper screen_personal">
     <div class="nav_header">
       <div class="header_text">Личный кабинет</div>
     </div>
-    <form id="edit_personal">
+    <form id="edit_personal" action="/user/save">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>ФИО владельца</label>
@@ -264,12 +291,16 @@
           </div>
           <div class="input_wrapper">
             <label>Квартира/офис</label>
-            <input type="text" name="cell">
+            <input type="text" name="apartment">
           </div>
         </div>
         <div class="input_wrapper">
           <label>Сменить пароль</label>
-          <input type="password" name="pwd">
+          <input type="password" name="new_pwd" id="new_user_password">
+        </div>
+        <div class="input_wrapper" id="old_user_password">
+          <label>Текущий пароль</label>
+          <input type="password" name="old_pwd">
         </div>
       </div>
       <div class="submit_button">Подтвердить</div>
@@ -279,25 +310,17 @@
     <div class="nav_header">
       <div class="header_text">Акции у партнеров</div>
     </div>
-    <div class="partners_events">
-      <img src="assets/images/akc1.png" alt="" class="switch_sceen" data-to="partners_map">
-      <img src="assets/images/akc2.png" alt="" class="switch_sceen" data-to="partners_map">
-      <img src="assets/images/akc3.png" alt="" class="switch_sceen" data-to="partners_map">
-    </div>
+    <div class="partners_events"></div>
   </div>
   <div class="section_wrapper screen_partners_map">
     <div class="nav_header">
       <div class="back_btn switch_screen" data-to="partners_events"></div>
-      <div class="header_text">Акции у партнеров</div>
+      <div class="header_text">ближайший магазин</div>
     </div>
     <div class="partners_map_content">
-      <div class="screen_content_header">ближайший магазин</div>
-      <div class="partners_map_logo"><img src="assets/images/!logo_example.png"></div>
-      <div class="partners_text text_wall">
-        <p>Специальное пред&shy;ложение для счаст&shy;ливых обладателей собак! Запас&shy;айтесь вкус&shy;нейшими кормами от самых попу&shy;лярных тор&shy;говых марок по луч&shy;шим ценам!
-          Радовать любим&shy;ца теперь еще про&shy;ще и выгоднее вмес&shy;те с «Бетховен».</p>
-        <p>Бонусы за акционный товар НАЧИС&shy;ЛЯЮТСЯ. Пред&shy;ложение действи&shy;тельно, пока товар есть в наличии.</p>
-      </div>
+      <div class="screen_content_header partners_header show_if_event"></div>
+      <!--<div class="partners_map_logo"><img src="assets/images/!logo_example.png"></div>-->
+      <div class="partners_text text_wall show_if_event"></div>
     </div>
     <div id="partners_map"></div>
   </div>
@@ -306,35 +329,28 @@
       <div class="back_btn switch_screen" data-to="dis_list"></div>
       <div class="header_text">Виды болезней</div>
     </div>
-    <div class="screen_content_header">болезнь 1</div>
+    <div class="screen_content_header disease_header"></div>
     <img src="assets/images/!bol_example.png" alt="" class="disease_image">
-    <div class="disease_text text_wall">
-      <p>Эндокринные заболевания возникают при различных нарушениях работы эндокринных желёз, которые не имеют выводных протоков, ввиду чего выделяют гормоны сразу в кровь. К таким железам следует отнести щитовидную железу, эпифиз, гипофиз, ок&shy;олощитовидные железы, вилочковую железу, надпочечники, половые железы и секреторные отделы поджелудочной железы. Эндокринные заболевания у собак могут про&shy;т&shy;екать в двух формах: с повы&shy;шением количества выделяемых в кровь гормонов и с понижением. Такие заболевания достаточно сложно диагностировать, из-за чего выставляют диагнозы домашним питомцам, как правило, на последних стадиях, когда вылечить собаку практически нет шансов.</p>
-      <p>Инфекционные заболевания связаны с непосредственным попаданием в организм питомца болезнет&shy;в&shy;орного микр&shy;о&shy;ба. Но следует отметить, что заражение и развитие инфекционного процесса возможно только лишь при восприимчивости организма собаки к данному микр&shy;о&shy;бу. В противном случае, ничего не произойдёт.</p>
-    </div>
+    <div class="disease_text text_wall"></div>
   </div>
   <div class="section_wrapper screen_dis_list">
     <div class="nav_header">
-      <div class="header_text">Виды болезней</div>
+      <div class="back_btn switch_screen" data-to="art_categories"></div>
+      <div class="header_text">Библиотека знаний</div>
     </div>
-    <div class="dis_list_wrapper">
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь1</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь2</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь3</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь4</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь5</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь6</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь7</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь8</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь9</div>
-      <div class="dis_list_item switch_screen" data-to="disease">Болезнь10</div>
+    <div class="dis_list_wrapper"></div>
+  </div>
+  <div class="section_wrapper screen_art_categories">
+    <div class="nav_header">
+      <div class="header_text">Библиотека знаний</div>
     </div>
+    <div class="art_categories_wrapper"></div>
   </div>
   <div class="section_wrapper screen_add_buy">
     <div class="nav_header">
       <div class="header_text">Добавление чека</div>
     </div>
-    <form id="add_buy">
+    <form id="add_buy" action="/Bill/save">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <div class="get_image_wrapper">
@@ -350,23 +366,18 @@
       <div class="back_btn switch_screen" data-to="event_main"></div>
       <div class="header_text">Обратная связь</div>
     </div>
-    <form id="feedback">
+    <form id="feedback" action="/feedback/save" data-message="Сообщение отправлено">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Категория вопроса</label>
-          <select name="type">
-            <option value=""></option>
-            <option value="1">Йорик</option>
-            <option value="2">Морик</option>
-            <option value="3">Дарик</option>
-          </select>
+          <select name="category_id" id="feedback_category_id"></select>
         </div>
         <div class="input_wrapper">
           <label>Вопрос</label>
-          <textarea name="question"></textarea>
+          <textarea name="msg"></textarea>
         </div>
       </div>
-      <div class="submit_button">Добавить чек</div>
+      <div class="submit_button">Отправить</div>
     </form>
   </div>
   <div class="section_wrapper screen_event_main brown_bg without_header">
@@ -382,55 +393,20 @@
       </div>
     </div>
   </div>
-  <div class="section_wrapper screen_pet_list">
+  <div class="section_wrapper screen_pet_list" data-function="updatePetList">
     <div class="nav_header">
       <div class="header_text">Мои питомцы</div>
     </div>
-    <div class="pet_list_wrapper">
-      <div class="pet_item">
-        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
-        <div class="pet_name">Николай</div>
-      </div>
-      <div class="pet_item">
-        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
-        <div class="pet_name">Фёдор</div>
-      </div>
-      <div class="pet_item">
-        <div class="pet_photo"><img src="assets/images/!pet_example.png"></div>
-        <div class="pet_name">Мыкола</div>
-      </div>
-      <div class="fake_submit_button switch_screen" data-to="pet_card">Добавить питомца</div>
-    </div>
+    <div class="pet_list_wrapper"></div>
+    <div class="fake_submit_button switch_screen" data-to="pet_card">Добавить питомца</div>
   </div>
   <div class="section_wrapper screen_gift_list">
     <div class="nav_header">
       <div class="back_btn switch_screen" data-to="event_main"></div>
       <div class="header_text">Подарки акции</div>
     </div>
-    <div class="gift_list_header">Ваше сердце заполнено на 35%</div>
-    <div class="gift_list_wrapper">
-      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
-        <div class="gift_item_photo"><img src="assets/images/gift_photo.png"></div>
-        <div class="gift_item_title">
-          <small>Фоторамка</small>
-          <b>40%</b>
-        </div>
-      </div>
-      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
-        <div class="gift_item_photo"><img src="assets/images/gift_miska.png"></div>
-        <div class="gift_item_title">
-          <small>Миска</small>
-          <b>75%</b>
-        </div>
-      </div>
-      <div class="gift_list_item clearfix switch_screen" data-to="gift_miska">
-        <div class="gift_item_photo"><img src="assets/images/gift_heart.png"></div>
-        <div class="gift_item_title">
-          <small>Кулон<br>&laquo;Золотое сердце&raquo;</small>
-          <b>100%</b>
-        </div>
-      </div>
-    </div>
+    <div class="gift_list_header">Ваше сердце заполнено на <span class="heart_percent">0</span>%</div>
+    <div class="gift_list_wrapper"></div>
   </div>
   <div class="section_wrapper screen_gift_miska">
     <div class="nav_header">
@@ -439,10 +415,10 @@
     </div>
     <div class="gift_photo"><img src="assets/images/gift_miska.png"></div>
     <div class="gift_title">Миска</div>
-    <div class="gift_status_text">Ваше сердце заполнено на 75%</div>
+    <div class="gift_status_text">Ваше сердце заполнено на <span class="heart_percent"></span>%</div>
     <div class="gift_status_image">
       <div class="gift_status_overlay"></div>
-      <div class="gift_status_percent">35%</div>
+      <div class="gift_status_percent"><span></span>%</div>
     </div>
     <div class="fake_submit_button">Заказать</div>
   </div>
@@ -451,8 +427,8 @@
 <ion-footer>
   <ion-toolbar>
     <div class="footer_left">
-      <div class="footer_nav icon1 switch_screen" data-to="dis_list"></div>
-      <div class="footer_nav icon2 switch_screen" data-to="add_event"></div>
+      <div class="footer_nav icon1 switch_screen" data-to="art_categories"></div>
+      <div class="footer_nav icon2 switch_screen" data-to="events_list"></div>
     </div>
     <div class="footer_right">
       <div class="footer_nav icon3 switch_screen" data-to="pet_list"></div>

@@ -91,6 +91,7 @@ a {
   padding: 12px 8%;
   background-color: #eedbb8;
   position: relative;
+  height: 65px;
 }
 .back_btn {
   position: absolute;
@@ -192,7 +193,7 @@ a {
   left: 17px;
 }
 .scroll-content {
-  padding: 0 0 50px;
+  padding: 0;
   margin-top: 59px !important;
 }
 .item {
@@ -211,6 +212,9 @@ select, input, textarea {
   border: 1px solid transparent;
   &.error {
     border-color: red;
+  }
+  &:disabled {
+    opacity: 0.5;
   }
 }
 textarea {
@@ -329,7 +333,7 @@ label.dog {
   margin-bottom: 30px;
   margin-top: 15px;
 }
-.submit_button, .reg_btn, .fake_submit_button {
+.submit_button, .reg_btn, .fake_submit_button, .remove_btn {
   background-color: #128c45;
   color: #fff;
   font-size: 20px;
@@ -340,6 +344,10 @@ label.dog {
   padding: 15px 10px;
   margin: 40px auto 0;
   font-family: 'AGLettericaCondensedCBold';
+}
+.remove_btn {
+  margin-top: 15px;
+  background-color: #ff5356;
 }
 .brown_btn {
   background-color: #e0bd78;
@@ -432,12 +440,20 @@ label.dog {
 .partners_map_content {
   padding: 0 8%;
 }
+#partners_map {
+  width: 100%;
+  height: 400px;
+}
+.screen_partners_map {
+  padding-bottom: 0;
+}
 .screen_content_header {
   font-family: 'AGLettericaCondensedCBold';
   text-transform: uppercase;
   font-size: 18px;
   text-align: center;
   margin-top: 10px;
+  padding: 0 8%;
 }
 .partners_map_logo {
   margin-top: 20px;
@@ -463,18 +479,17 @@ label.dog {
   margin-top: 20px;
   padding: 0 8%;
 }
-.dis_list_wrapper {
+.dis_list_wrapper, #events_list_wrapper, .art_categories_wrapper {
   margin-top: 20px;
 }
-.dis_list_item {
+.dis_list_item, .event_item, .art_category_item {
   border-bottom: 1px solid #e0bd78;
+  border-top: 1px solid #e0bd78;
+  margin-top: -1px;
   padding: 14px 8%;
   font-size: 18px;
   background: url("../assets/images/double_arrow.png") no-repeat center right 8%;
   background-size: 15px;
-}
-.dis_list_item:first-child {
-  border-top: 1px solid #e0bd78;
 }
 #add_buy, #feedback {
   margin-top: 20px;
@@ -514,6 +529,14 @@ label.dog {
 .pet_item:first-child {
   margin-left: 80px;
   margin-right: 80px;
+}
+.pet_photo {
+  width: 100px;
+  height: 100px;
+  background-color: #eedbb8;
+  background-size: cover;
+  background-position: center;
+  border-radius: 100%;
 }
 .pet_name {
   font-size: 16px;
@@ -593,7 +616,7 @@ label.dog {
 }
 .gift_status_overlay {
   width: 160px;
-  height: 35%;
+  height: 0;
   position: absolute;
   background: url("../assets/images/heart_overlay.png") no-repeat center bottom;
   background-size: cover;
