@@ -6,11 +6,16 @@ var TOUCH_X, TOUCH_Y, IS_MOVING;
 document.addEventListener("deviceready", function() {
   cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
   $('body').on('touchend', '.get_image_wrapper', function(e) {
+    if (IS_MOVING) return;
     e.preventDefault();
     var _this = $(this);
     var inp = _this.find('input');
     function fail (err) {
-      IonicAlert('Ошибка', JSON.stringify(err));
+      console.log(JSON.stringify(err));
+    }
+    function failLoad(err) {
+      console.log(JSON.stringify(err));
+      IonicAlert('Ошибка', 'Не удается загрузить изображение на сервер');
     }
     navigator.camera.getPicture(function(imageData) {
       var options = new FileUploadOptions();
@@ -35,7 +40,7 @@ document.addEventListener("deviceready", function() {
             switchTo('login');
             return;
           }
-          IonicAlert('Ошибка', d.system.msg);
+          IonicAlert('Ошибка', translateError(d.system.msg));
         }
         var url = imageIdtoUrl(d.result);
         inp.val(d.result);
@@ -43,7 +48,7 @@ document.addEventListener("deviceready", function() {
       }
 
       var ft = new FileTransfer();
-      ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, fail, options);
+      ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, failLoad, options);
     }, fail);
   })
 }, false);
@@ -75,20 +80,33 @@ $(document).ready(function() {
   }).on('submit', 'form', function(e) {
     e.preventDefault();
     var err = false;
+    var checked = true;
     $(this).find('.format_phone').each(function(i,e) {
       $(e).val($(e).val().replace(/[^0-9.]/g, ''));
     });
     $(this).find('input[type="datetime-local"]').each(function(i,e) {
       $(e).siblings('input').val($(e).val().replace(/T/g, ' ') + ':00');
     });
+    if ($(this).find('input[type="checkbox"]').length) {
+      checked = false;
+      $(this).find('input[type="checkbox"]').each(function (i, e) {
+        if (e.checked) checked = true;
+      });
+    }
     $(this).find('.required').each(function(i,e) {
+      var el = $(e);
+      if ($(e).parents('.get_image_wrapper').length) el = $(e).parents('.get_image_wrapper');
       if ($(e).val() == '') {
         err = true;
-        $(e).addClass('error');
+        el.addClass('error');
       } else {
-        $(e).removeClass('error');
+        el.removeClass('error');
       }
     });
+    if (!checked) {
+      IonicAlert('Ошибка', 'Выберите вид питомца');
+      return;
+    }
     if (err) {
       IonicAlert('Ошибка', 'Заполните отмеченные поля');
       return;
@@ -101,7 +119,7 @@ $(document).ready(function() {
     var _this = this;
     sendRequest($(this).attr('action'), data, 'post', function(d) {
       if (d.system.code == 0 && d.system.msg != '') {
-        IonicAlert('Ошибка', d.system.msg);
+        IonicAlert('Ошибка', translateError(d.system.msg));
         console.log(d);
         return;
       }
@@ -110,8 +128,6 @@ $(document).ready(function() {
       if (d.system.code == 1 || (d.result && d.result != '')) {
         if (success && typeof window[success] == 'function') {
           if (!window[success](d)) return;
-        } else {
-          _this.reset();
         }
         switch (to) {
           case 'pet_list':
@@ -119,11 +135,13 @@ $(document).ready(function() {
             break;
           case 'events_list':
             updateEventsList();
-            if ($('#is_notify_value').val().length > 5) addEventNotify(d);
+            if ($('#is_notify_value').val().length > 5) addEventNotify(d, $('#event_name_selector').val());
             break;
         }
         if (to) switchTo(to);
-        else IonicAlert('Успешно', $(_this).data('message') || 'Данные сохранены')
+        else IonicAlert('Успешно', $(_this).data('message') || 'Данные сохранены');
+        _this.reset();
+        $(_this).find('.get_image_wrapper').removeClass('active').css('background-image', '');
       }
     })
   }).on('change', '#species_selector input', function() {
@@ -151,6 +169,8 @@ $(document).ready(function() {
     sendRequest($(this).data('action'), $(e.target).attr('data-params'), 'post', function(d) {
       updatePetList();
       switchTo('pet_list');
+      $("#add_pet")[0].reset();
+      $("#add_pet").find('input[name="id"]').val('');
     });
   }).on('touchend', '.remove_event', function(e) {
     if (IS_MOVING) return;
@@ -159,6 +179,8 @@ $(document).ready(function() {
       IonicNative.LocalNotifications.cancel('event' + parseInt(params));
       updateEventsList();
       switchTo('events_list');
+      $("#add_event")[0].reset();
+      $("#add_event").find('input[name="id"]').val('');
     });
   }).on('touchend', '.item-cover', function() {
     var checked = $(this).attr('aria-checked') == 'true' ? true : false;
@@ -168,6 +190,16 @@ $(document).ready(function() {
     } else {
       inputs.val('').attr('disabled', 'disabled');
     }
+  });
+
+  sendRequest('/library/get', 'names=cat_breeds,dog_breeds,drugs,messages,categories', 'get', function(d) {
+    APP_DATA.library = d.result;
+    var categories = d.result.categories;
+    var html = '<option value=""></option>';
+    for (var c in categories) {
+      html += '<option value="' + c + '">' + categories[c] + '</option>';
+    }
+    $('#feedback_category_id').html(html);
   });
 
   if (window.localStorage.getItem('_token')) {
@@ -188,7 +220,7 @@ function loginSuccess(d) {
     return true;
   } else {
     console.log(d);
-    IonicAlert('Ошибка', JSON.stringify(d));
+    IonicAlert('Ошибка', translateError(d.system.msg));
     return false;
   }
 }
@@ -273,12 +305,14 @@ function loadPartnersMap(screen, params) {
     var myPlacemark;
     for (var s in stores) {
       coords = stores[s].geolocation.split(',');
-      console.log([coords[1], coords[0]]);
-      myPlacemark = new ymaps.Placemark([coords[1], coords[0]], {}, {
+      myPlacemark = new ymaps.Placemark([coords[1], coords[0]], {
+        balloonContentHeader: stores[s].name,
+        balloonContentBody: stores[s].contacts
+      }, {
         iconLayout: 'default#image',
         iconImageHref: 'assets/images/map_pin.png',
         iconImageSize: [30, 41],
-        iconImageOffset: [-3, -42]
+        iconImageOffset: [-15, -41]
       });
       APP_DATA.myMap.geoObjects.add(myPlacemark);
     }
@@ -334,30 +368,23 @@ function updateEventsList() {
   });
 }
 
-function addEventNotify(d) {
+function addEventNotify(d, name) {
   var options = {
-    id: 'event' + d.id,
-    text: 'Напоминание о событии: ' + $('#event_name_selector').val(),
+    id: 'event' + d.result,
+    text: 'Напоминание о событии: ' + name,
     at: new Date(moment($('#is_notify_value').val()).toISOString())
   };
-  var not;
-  if (IonicNative.LocalNotifications.isScheduled(d.id)) {
-    not = IonicNative.LocalNotifications.update(options);
-  } else {
-    not = IonicNative.LocalNotifications.schedule(options);
+  IonicNative.LocalNotifications.cancel('event' + d.result);
+  var not = IonicNative.LocalNotifications.schedule(options);
+  if (not && not.error) {
+    console.log(not.error);
+    IonicAlert('Ошибка', 'Ошибка создания уведомления');
   }
-  if (not && not.error) IonicAlert('Ошибка', not.error);
   else {
     IonicAlert('Успешно', 'Уведомление добавлено');
     switchTo('events_list');
-    $("#add_event")[0].reset();
   }
-}
-
-function checkTouchDelta(x,y) {
-  alert(Math.abs(TOUCH_X - x), Math.abs(TOUCH_Y - y));
-  if (Math.abs(TOUCH_X - x) > 10 || Math.abs(TOUCH_Y - y) > 10) return false;
-  else return true;
+  $("#add_event")[0].reset();
 }
 
 function switchTo(screen, params, func) {
@@ -366,6 +393,12 @@ function switchTo(screen, params, func) {
   else $('.content').removeClass('brown_bg');
   if (to_elem.hasClass('no_footer')) $('.footer, #open_menu').hide()
   else $('.footer, #open_menu').show();
+  if (!to_elem.find('.nav_header').length) {
+    $('.header .nav_header').hide();
+  } else {
+    $('.header .nav_header').html(to_elem.find('.nav_header').html()).show();
+  }
+  if (to_elem.find('form').length) to_elem.find('form')[0].reset();
   if (params) {
     if (typeof params == 'string') {
       try {
@@ -417,6 +450,25 @@ function switchTo(screen, params, func) {
   }, 100);
 }
 
+function translateError(err) {
+  if (APP_DATA.library && APP_DATA.library.messages) {
+    var messages = APP_DATA.library.messages;
+    if (messages[err]) return messages[err];
+    for (var m in messages) {
+      if (err.indexOf(m) != -1) {
+        var mach = err.match(/\s(\w+)$/);
+        if (m.indexOf('id') != -1) {
+          return messages[m].replace(/\bid\b/g, mach[1]);
+        } else {
+          return messages[m] + mach[0];
+        }
+      }
+    }
+  }
+
+  return err;
+}
+
 function sendRequest(path, params, method, callback) {
   var token = '';
   var is_test = '';
@@ -447,14 +499,14 @@ function sendRequest(path, params, method, callback) {
           switchTo('login');
           return;
         }
-        IonicAlert('Ошибка', data.system.msg);
+        IonicAlert('Ошибка', translateError(data.system.msg));
       } else {
         if (typeof callback == 'function') callback(data);
       }
     },
     error: function (a,b,c) {
       console.log(a,b,c);
-      IonicAlert('Ошибка', c);
+      IonicAlert('Ошибка', 'Ошибка соедмнения с сервером');
     }
   });
 }
@@ -464,15 +516,6 @@ function imageIdtoUrl(id) {
 }
 
 function initApp() {
-  sendRequest('/library/get', 'names=cat_breeds,dog_breeds,drugs,messages,categories', 'get', function(d) {
-    APP_DATA.library = d.result;
-    var categories = d.result.categories;
-    var html = '<option value=""></option>';
-    for (var c in categories) {
-      html += '<option value="' + c + '">' + categories[c] + '</option>';
-    }
-    $('#feedback_category_id').html(html);
-  });
   updatePetList();
   updateEventsList();
   sendRequest('/bill/list', '', 'get', function(d) {

@@ -109,6 +109,7 @@ a {
   text-align: center;
   font-family: 'AGLettericaCondensedCBold';
   padding: 8px 0;
+  color: #573f34;
 }
 .section_wrapper {
   display: none;
@@ -272,6 +273,10 @@ label {
   background-size: 80px auto;
   position: relative;
   border-radius: 100%;
+  border: 1px solid transparent;
+}
+.get_image_wrapper.error {
+  border-color: red;
 }
 .get_image_wrapper.active {
   background-size: cover;
@@ -344,6 +349,8 @@ label.dog {
   padding: 15px 10px;
   margin: 40px auto 0;
   font-family: 'AGLettericaCondensedCBold';
+  line-height: 20px;
+  height: 50px;
 }
 .remove_btn {
   margin-top: 15px;
@@ -441,6 +448,7 @@ label.dog {
   padding: 0 8%;
 }
 #partners_map {
+  padding-bottom: 40px;
   width: 100%;
   height: 400px;
 }

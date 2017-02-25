@@ -12,6 +12,10 @@
   <ion-toolbar>
     <div id="open_menu"></div>
   </ion-toolbar>
+  <div class="nav_header">
+    <div class="back_btn switch_screen" data-to="pet_list"></div>
+    <div class="header_text">Анкета Питомца</div>
+  </div>
 </ion-header>
 
 <ion-content>
@@ -78,11 +82,11 @@
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Кличка</label>
-          <input type="text" name="name">
+          <input type="text" name="name" class="required">
         </div>
         <div class="input_wrapper">
           <label>Порода</label>
-          <select name="breed_id" id="breed_selector"></select>
+          <select name="breed_id" id="breed_selector" class="required"></select>
         </div>
         <div class="input_wrapper">
           <div class="get_image_wrapper">
@@ -211,7 +215,7 @@
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Процедура</label>
-          <select name="name" id="event_name_selector">
+          <select name="name" id="event_name_selector" class="required">
             <option value=""></option>
             <option value="Вакцинация">Вакцинация</option>
             <option value="Обработка от глистов">Обработка от глистов</option>
@@ -223,7 +227,7 @@
         </div>
         <div class="input_wrapper">
           <label>Дата</label>
-          <input type="datetime-local">
+          <input type="datetime-local" class="required">
           <input type="hidden" name="datetime">
         </div>
         <div class="input_wrapper">
@@ -232,7 +236,7 @@
         </div>
         <div class="input_wrapper">
           <label>Питомец</label>
-          <select name="pet_id" id="my_pets_selector"></select>
+          <select name="pet_id" id="my_pets_selector" class="required"></select>
         </div>
         <div class="input_wrapper with_checkbox">
           <label>Напомнить мне</label>
@@ -300,7 +304,7 @@
         </div>
         <div class="input_wrapper" id="old_user_password">
           <label>Текущий пароль</label>
-          <input type="password" name="old_pwd">
+          <input type="password" name="old_pwd" class="required">
         </div>
       </div>
       <div class="submit_button">Подтвердить</div>
@@ -350,11 +354,11 @@
     <div class="nav_header">
       <div class="header_text">Добавление чека</div>
     </div>
-    <form id="add_buy" action="/Bill/save">
+    <form id="add_buy" action="/Bill/save" data-message="Чек отправлен на модерацию">
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <div class="get_image_wrapper">
-            <input type="hidden" class="get_image" name="img">
+            <input type="hidden" class="get_image" name="img" class="required">
           </div>
         </div>
       </div>
@@ -370,11 +374,11 @@
       <div class="inputs_wrapper">
         <div class="input_wrapper">
           <label>Категория вопроса</label>
-          <select name="category_id" id="feedback_category_id"></select>
+          <select name="category_id" id="feedback_category_id" class="required"></select>
         </div>
         <div class="input_wrapper">
           <label>Вопрос</label>
-          <textarea name="msg"></textarea>
+          <textarea name="msg" class="required"></textarea>
         </div>
       </div>
       <div class="submit_button">Отправить</div>
