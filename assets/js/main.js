@@ -5,6 +5,9 @@ var TOUCH_X, TOUCH_Y, IS_MOVING;
 
 document.addEventListener("deviceready", function() {
   cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
+  cordova.plugins.notification.local.registerPermission(function (granted) {
+    // console.log('Permission has been granted: ' + granted);
+  });
   $('body').on('touchend', '.get_image_wrapper', function(e) {
     if (IS_MOVING) return;
     e.preventDefault();
@@ -85,7 +88,7 @@ $(document).ready(function() {
       $(e).val($(e).val().replace(/[^0-9.]/g, ''));
     });
     $(this).find('input[type="datetime-local"]').each(function(i,e) {
-      $(e).siblings('input').val($(e).val().replace(/T/g, ' ') + ':00');
+      $(e).siblings('input').val(moment($(e).val()).format('YYYY-MM-DD HH:mm:ss'));
     });
     if ($(this).find('input[type="checkbox"]').length) {
       checked = false;
@@ -140,8 +143,10 @@ $(document).ready(function() {
         }
         if (to) switchTo(to);
         else IonicAlert('Успешно', $(_this).data('message') || 'Данные сохранены');
-        _this.reset();
-        $(_this).find('.get_image_wrapper').removeClass('active').css('background-image', '');
+        if ($(_this).attr('id') != 'edit_personal') {
+          _this.reset();
+          $(_this).find('.get_image_wrapper').removeClass('active').css('background-image', '');
+        }
       }
     })
   }).on('change', '#species_selector input', function() {
@@ -176,7 +181,7 @@ $(document).ready(function() {
     if (IS_MOVING) return;
     var params = $(e.target).attr('data-params');
     sendRequest($(this).data('action'), $(e.target).attr('data-params'), 'post', function(d) {
-      IonicNative.LocalNotifications.cancel('event' + parseInt(params));
+      cordova.plugins.notification.local.cancel(params.match(/\d+/)[0]);
       updateEventsList();
       switchTo('events_list');
       $("#add_event")[0].reset();
@@ -370,20 +375,19 @@ function updateEventsList() {
 
 function addEventNotify(d, name) {
   var options = {
-    id: 'event' + d.result,
+    id: d.result,
     text: 'Напоминание о событии: ' + name,
     at: new Date(moment($('#is_notify_value').val()).toISOString())
   };
-  IonicNative.LocalNotifications.cancel('event' + d.result);
-  var not = IonicNative.LocalNotifications.schedule(options);
-  if (not && not.error) {
+  cordova.plugins.notification.local.schedule(options);
+  /*if (not && not.error) {
     console.log(not.error);
     IonicAlert('Ошибка', 'Ошибка создания уведомления');
   }
-  else {
+  else {*/
     IonicAlert('Успешно', 'Уведомление добавлено');
     switchTo('events_list');
-  }
+  //}
   $("#add_event")[0].reset();
 }
 
@@ -398,7 +402,7 @@ function switchTo(screen, params, func) {
   } else {
     $('.header .nav_header').html(to_elem.find('.nav_header').html()).show();
   }
-  if (to_elem.find('form').length) to_elem.find('form')[0].reset();
+  if (to_elem.find('form').length && to_elem.find('form').attr('id') != 'edit_personal') to_elem.find('form')[0].reset();
   if (params) {
     if (typeof params == 'string') {
       try {
