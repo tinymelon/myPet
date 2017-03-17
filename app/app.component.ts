@@ -19,13 +19,40 @@ export class MyApp {
 
       interface Window { IonicAlert: any; }
 
-      window["IonicAlert"] = function(title, text) {
-        let alert = alerCtrl.create({
-          title: title,
-          message: text,
-          buttons: ['Ok']
-        });
-        alert.present()
+      window["IonicAlert"] = function(title, text, isPhoto, callback) {
+        if (isPhoto) {
+          let alert = alerCtrl.create();
+          alert.setTitle('Откуда вы хотите взять изображение?');
+
+          alert.addInput({
+            type: 'radio',
+            label: 'Камера',
+            value: '1',
+            checked: true
+          });
+
+          alert.addInput({
+            type: 'radio',
+            label: 'Альбом',
+            value: '0'
+          });
+
+          alert.addButton('Отмена');
+          alert.addButton({
+            text: 'OK',
+            handler: data => {
+              callback(data);
+            }
+          });
+          alert.present();
+        } else {
+          let alert = alerCtrl.create({
+            title: title,
+            message: text,
+            buttons: ['OK']
+          });
+          alert.present()
+        }
       };
     });
   }

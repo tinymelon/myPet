@@ -26,7 +26,7 @@ a {
 
 #menu_wrapper {
   position: fixed;
-  top: 70px;
+  top: 76px;
   background: #573f34;
   color: #fff;
   z-index: 999;
@@ -35,6 +35,9 @@ a {
   height: 100%;
   transform: translateX(-100%);
   transition: all 300ms ease;
+}
+.android #menu_wrapper {
+  top: 56px;
 }
 #menu_wrapper.active {
   transform: translateX(0);
@@ -66,7 +69,7 @@ a {
   background-image: url("../assets/images/gift_icon.png");
 }
 .menu_point:nth-child(3):before {
-  background-image: url("../assets/images/cart_icon.png");
+  background-image: url("../assets/images/cart_white_icon.png");
 }
 .menu_point:nth-child(4):before {
   background-image: url("../assets/images/pet_small_icon.png");
@@ -108,7 +111,7 @@ a {
 }
 .header_text {
   text-transform: uppercase;
-  font-size: 22px;
+  font-size: 20px;
   text-align: center;
   font-family: 'AGLettericaCondensedCBold';
   padding: 8px 0;
@@ -117,7 +120,7 @@ a {
 .section_wrapper {
   display: none;
   position: relative;
-  padding-bottom: 40px;
+  padding-bottom: 80px;
 }
 .section_wrapper.active {
   display: block;
@@ -126,23 +129,32 @@ a {
   padding-top: 40px;
 }
 .header .toolbar-background {
-  background: url("../assets/images/header.png") no-repeat;
+  background: #eedbb8 url("../assets/images/header.png") no-repeat center bottom;
   background-size: cover;
   border: none !important;
+}
+.android .header .toolbar-background {
+  background-size: 100% 130%;
 }
 .footer .toolbar-background {
   border: none !important;
   background: #e0bd78;
 }
 .header .toolbar {
+  min-height: 77px;
+}
+.android .header .toolbar {
   min-height: 59px;
 }
 .footer_nav {
   width: 27px;
   height: 24px;
-  background-size: contain;
-  background-position: center;
+  background-size: 100% 48px;
+  background-position: top center;
   background-repeat: no-repeat;
+}
+.footer_nav.active {
+  background-position: bottom center;
 }
 .footer_nav.icon1 {
   float: left;
@@ -160,6 +172,10 @@ a {
   float: right;
   background-image: url("../assets/images/heart_icon.png");
 }
+.footer_nav.icon5 {
+  float: right;
+  background-image: url("../assets/images/cart_icon.png");
+}
 .footer_left {
   float: left;
   margin-left: 8%;
@@ -174,30 +190,59 @@ a {
   width: 44px;
   height: 44px;
   background: url("../assets/images/footer_plus.png");
-  background-size: contain;
+  background-position: top center;
+  background-size: 44px auto;
   position: absolute;
   top: -19px;
   left: 50%;
   margin-left: -16px;
+}
+.footer_nav_center.active {
+  background-position: bottom center;
 }
 .toolbar {
   overflow: visible;
   contain: none;
 }
 .fixed-content {
+  margin-top: 77px !important;
+}
+.android .fixed-content {
   margin-top: 59px !important;
 }
 #open_menu {
   width: 45px;
   height: 37px;
-  background: url("../assets/images/menu.png") no-repeat center;
+  background: url('../assets/images/menu.png') no-repeat center;
   background-size: 25px 17px;
   position: absolute;
-  top: 11px;
+  top: 50%;
   left: 17px;
+  transform: translateY(-50%);
+  margin-top: -2px;
+}
+div#logo {
+  width: 95px;
+  height: 30px;
+  background: url('../assets/images/logo.png') no-repeat center;
+  background-size: cover;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+}
+.header .toolbar-content {
+  position: relative;
+  margin-top: 0;
+}
+.android .header .toolbar-content {
+  margin-top: 0;
 }
 .scroll-content {
   padding: 0;
+  margin-top: 77px !important;
+}
+.android .scroll-content {
   margin-top: 59px !important;
 }
 .item {
@@ -283,6 +328,25 @@ label {
 }
 .get_image_wrapper.active {
   background-size: cover;
+  border: none;
+}
+.get_image_wrapper.loading {
+  background-image: none;
+}
+.get_image_wrapper.loading:before {
+  content: 'ЗАГРУЗКА';
+  display: block;
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  top: 50%;
+  line-height: 1;
+  margin-top: -9px;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-family: 'AGLettericaCondensedCBold';
+  font-size: 18px;
 }
 .get_image {
   opacity: 0;
@@ -355,6 +419,10 @@ label.dog {
   line-height: 20px;
   height: 50px;
 }
+.fake_submit_button.disabled {
+  opacity: 0.5;
+  background: #aaa;
+}
 .remove_btn {
   margin-top: 15px;
   background-color: #ff5356;
@@ -363,13 +431,20 @@ label.dog {
   background-color: #e0bd78;
   color: #573f34;
 }
-.brown_bg input {
+.brown_bg input, .brown_bg select {
   background: rgba(255,255,255,0.35);
+}
+.remove_btn.logout {
+  display: block !important;
 }
 .forgot_pass {
   font-size: 18px;
   text-decoration: underline;
   margin: 30px auto;
+  text-align: center;
+}
+.back_to_login {
+  text-decoration: none;
   text-align: center;
 }
 
@@ -413,23 +488,35 @@ label.dog {
   float: left;
   position: relative;
 }
-.add_event_card:nth-child(1) {
+.screen_add_event .add_event_card:nth-child(1) {
   background-image: url("../assets/images/proc1.png");
 }
-.add_event_card:nth-child(2) {
+.screen_add_event .add_event_card:nth-child(2) {
   background-image: url("../assets/images/proc2.png");
 }
-.add_event_card:nth-child(3) {
+.screen_add_event .add_event_card:nth-child(2) {
   background-image: url("../assets/images/proc3.png");
 }
-.add_event_card:nth-child(4) {
+.screen_add_event .add_event_card:nth-child(3) {
   background-image: url("../assets/images/proc4.png");
 }
-.add_event_card:nth-child(5) {
+.screen_add_event .add_event_card:nth-child(4) {
   background-image: url("../assets/images/proc5.png");
 }
-.add_event_card:nth-child(6) {
+.screen_add_event .add_event_card:nth-child(5) {
   background-image: url("../assets/images/proc6.png");
+}
+.screen_art_categories .add_event_card:nth-child(1) {
+  background-image: url("../assets/images/lib1.png");
+}
+.screen_art_categories .add_event_card:nth-child(2) {
+  background-image: url("../assets/images/proc1.png");
+}
+.screen_art_categories .add_event_card:nth-child(3) {
+  background-image: url("../assets/images/lib2.png");
+}
+.screen_art_categories .add_event_card:nth-child(4) {
+  background-image: url("../assets/images/lib3.png");
 }
 .add_event_card div {
   position: absolute;
@@ -437,11 +524,11 @@ label.dog {
   bottom: 0;
   left: 0;
   padding: 3px 4px;
-  font-size: 16px;
+  font-size: 14px;
   text-align: center;
   background-color: rgba(249, 242, 230, 0.9);
 }
-#add_event, #edit_personal {
+#add_event, #edit_personal, #gift_order {
   margin-top: 40px;
 }
 .partners_events {
@@ -485,15 +572,16 @@ label.dog {
 }
 .disease_image {
   margin-top: 10px;
+  width: 100%;
 }
 .disease_text {
   margin-top: 20px;
   padding: 0 8%;
 }
-.dis_list_wrapper, #events_list_wrapper, .art_categories_wrapper {
+.dis_list_wrapper, #events_list_wrapper, .art_categories_wrapper, .quest_list_wrapper {
   margin-top: 20px;
 }
-.dis_list_item, .event_item, .art_category_item {
+.dis_list_item, .event_item, .art_category_item, .quest_list_item {
   border-bottom: 1px solid #e0bd78;
   border-top: 1px solid #e0bd78;
   margin-top: -1px;
@@ -514,9 +602,19 @@ label.dog {
 .event_main_image {
   text-align: center;
   margin-top: 10px;
+  position: relative;
 }
 .event_main_image img {
   width: 230px;
+}
+.event_main_count {
+  position: absolute;
+  bottom: 38px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 16px;
 }
 .event_main_list {
   margin-top: 30px;
@@ -536,6 +634,7 @@ label.dog {
   display: inline-block;
   width: 100px;
   margin: 0 30px 15px;
+  vertical-align: top;
 }
 .pet_item:first-child {
   margin-left: 80px;
@@ -643,4 +742,63 @@ label.dog {
   font-size: 40px;
   font-family: 'AGLettericaCondensedCBold';
   text-align: center;
+}
+
+#old_user_password, .regions_content {
+  display: none;
+}
+
+.text_page_content {
+  margin-top: 20px;
+  padding: 0 8%;
+  font-size: 16px;
+  text-align: justify;
+}
+
+#drug_care_text {
+  padding: 20px 35px;
+  font-size: 12px;
+  text-align: center;
+  display: none;
+}
+
+.sex_select label {
+  display: inline-block;
+  margin-right: 20px;
+}
+.sex_block {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  bottom: -8px;
+  padding: 8px;
+  padding-bottom: 15px;
+  border-radius: 100%;
+  border: 1px solid transparent;
+}
+.sex_block.active {
+  border-color: #d8af53;
+}
+.sex_block img {
+  width: 100%;
+}
+
+@media screen and (max-width: 370px) {
+  .submit_button, .reg_btn, .fake_submit_button, .remove_btn {
+    font-size: 16px;
+  }
+  #menu_wrapper {
+    width: 100%;
+  }
+  .menu_point {
+    padding-left: 55px;
+  }
+  .menu_point:before {
+    left: 16px;
+  }
+  .header_text {
+    font-size: 18px;
+    padding-top: 12px;
+  }
 }

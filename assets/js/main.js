@@ -1,13 +1,20 @@
 var API_URL = 'https://growthof.me/heart';
 var APP_DATA = {};
-var IS_TEST = true;
+var IS_TEST = false;
 var TOUCH_X, TOUCH_Y, IS_MOVING;
 
 document.addEventListener("deviceready", function() {
+  $('body').addClass(device.platform == 'Android' ? 'android' : 'ios');
+  $('#app_type').val(device.platform == 'Android' ? 1 : 2);
+  $('#device_id').val(device.uuid);
+
   cordova.plugins.Keyboard.hideKeyboardAccessoryBar(false);
   cordova.plugins.notification.local.registerPermission(function (granted) {
     // console.log('Permission has been granted: ' + granted);
   });
+  Ionic.platform.registerBackButtonAction(function (event) {
+    event.preventDefault();
+  }, 100);
   $('body').on('touchend', '.get_image_wrapper', function(e) {
     if (IS_MOVING) return;
     e.preventDefault();
@@ -20,41 +27,74 @@ document.addEventListener("deviceready", function() {
       console.log(JSON.stringify(err));
       IonicAlert('Ошибка', 'Не удается загрузить изображение на сервер');
     }
-    navigator.camera.getPicture(function(imageData) {
-      var options = new FileUploadOptions();
-      options.fileKey = "img";
-      options.fileName = "image.jpg";
-      options.mimeType = "image/jpeg";
-      options.chunkedMode = false;
+    var cameraType = IonicAlert('', '', true, function(cameraType) {
+      navigator.camera.getPicture(function(imageData) {
+        var options = new FileUploadOptions();
+        options.fileKey = "img";
+        options.fileName = "image.jpg";
+        options.mimeType = "image/jpeg";
+        options.chunkedMode = false;
 
-      var params = {};
-      params.token = APP_DATA.token;
+        var params = {};
+        params.token = APP_DATA.token;
 
-      options.params = params;
-      function win (response) {
-        var d;
-        try {
-          d = JSON.parse(response.response);
-        } catch (e) {
-          console.log(e);
-        }
-        if (d.system.code == 0 && d.system.msg != '') {
-          if (d.system.msg == 'Unknown user') {
-            switchTo('login');
-            return;
+        options.params = params;
+        function win (response) {
+          var d;
+          try {
+            d = JSON.parse(response.response);
+          } catch (e) {
+            console.log(e);
           }
-          IonicAlert('Ошибка', translateError(d.system.msg));
+          if (d.system.code == 0 && d.system.msg != '') {
+            if (d.system.msg == 'Unknown user') {
+              switchTo('login');
+              return;
+            }
+            IonicAlert('Ошибка', translateError(d.system.msg));
+          }
+          var url = imageIdtoUrl(d.result);
+          inp.val(d.result);
+          _this.css('background-image', 'url("' + url + '")').addClass('active').removeClass('loading');
         }
-        var url = imageIdtoUrl(d.result);
-        inp.val(d.result);
-        _this.css('background-image', 'url("' + url + '")').addClass('active');
-      }
 
-      var ft = new FileTransfer();
-      ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, failLoad, options);
-    }, fail);
-  })
+        var ft = new FileTransfer();
+        _this.addClass('loading');
+        ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, failLoad, options);
+      }, fail, {
+        sourceType: parseInt(cameraType),
+        targetWidth: 800,
+        targetHeight: 800
+      });
+    })
+  });
+
+  var push = PushNotification.init({
+    android: {
+      senderID: "564788632487"
+    },
+    ios: {
+      alert: "true",
+      badge: "true",
+      sound: "true"
+    }
+  });
+
+  push.on('registration', function(data) {
+    $('#device_id').val(data.registrationId);
+  });
+
+  push.on('notification', function(data) {
+    alert(JSON.stringify(data));
+    updateAppInfo();
+  });
+
+  push.on('error', function(e) {
+    alert(e.message)
+  });
+
 }, false);
+document.addEventListener("resume", updateAppInfo, false);
 
 $(document).ready(function() {
   $('body').on('touchstart', function(e) {
@@ -72,13 +112,16 @@ $(document).ready(function() {
   }).on('touchend', '.submit_button', function() {
     if (IS_MOVING) return;
     var form = $(this).parents('form').submit();
-  }).on('touchend', '.switch_screen', function () {
-    if (IS_MOVING) return;
+  }).on('touchend', '.switch_screen', function (e) {
+    if (IS_MOVING || $(this).hasClass('disabled')) return;
+    e.preventDefault();
     var screen = $(this).data('to');
     var params;
     var func;
-    if ($(this).data('param')) params = $(this).data('param');
+    if ($(this).data('param')) params = $(this).attr('data-param');
     if ($(this).data('function')) func = $(this).data('function');
+    $('.switch_screen').removeClass('active');
+    $(this).addClass('active');
     switchTo(screen, params, func);
   }).on('submit', 'form', function(e) {
     e.preventDefault();
@@ -88,8 +131,16 @@ $(document).ready(function() {
       $(e).val($(e).val().replace(/[^0-9.]/g, ''));
     });
     $(this).find('input[type="datetime-local"]').each(function(i,e) {
-      $(e).siblings('input').val(moment($(e).val()).format('YYYY-MM-DD HH:mm:ss'));
+      if ($(e).val())
+        $(e).siblings('input').val(moment($(e).val()).format('YYYY-MM-DD HH:mm:ss'));
+      else
+        $(e).siblings('input').val('');
     });
+    var obj = {};
+    $(this).find('.fields_input').each(function(i,e) {
+      obj[$(e).data('name')] = $(e).val();
+    });
+    $(this).find('.fields_place').val(JSON.stringify(obj));
     if ($(this).find('input[type="checkbox"]').length) {
       checked = false;
       $(this).find('input[type="checkbox"]').each(function (i, e) {
@@ -106,7 +157,10 @@ $(document).ready(function() {
         el.removeClass('error');
       }
     });
-    if (!checked) {
+    if (!checked && $(this).attr('id') == 'register_form') {
+      IonicAlert('Ошибка', 'Отметьте согласие с правилами');
+      return;
+    } else if (!checked) {
       IonicAlert('Ошибка', 'Выберите вид питомца');
       return;
     }
@@ -138,7 +192,7 @@ $(document).ready(function() {
             break;
           case 'events_list':
             updateEventsList();
-            if ($('#is_notify_value').val().length > 5) addEventNotify(d, $('#event_name_selector').val());
+            if ($('#is_notify_value').val().length > 5) addEventNotify(d, $('#event_name_selector').find('option:selected').data('msg'));
             break;
         }
         if (to) switchTo(to);
@@ -146,6 +200,12 @@ $(document).ready(function() {
         if ($(_this).attr('id') != 'edit_personal') {
           _this.reset();
           $(_this).find('.get_image_wrapper').removeClass('active').css('background-image', '');
+        } else {
+          $(_this).find('input, select').each(function(i,e) {
+            var n = $(e).attr('name');
+            var v = $(e).val();
+            APP_DATA.user[n] = v;
+          });
         }
       }
     })
@@ -154,21 +214,40 @@ $(document).ready(function() {
     var breeds = id == 1 ? APP_DATA.library.cat_breeds : APP_DATA.library.dog_breeds;
     var drug_worm = APP_DATA.library.drugs[id][1];
     var drug_tick = APP_DATA.library.drugs[id][2];
-    var html = '<option value=""></option>';
+    var html = '';
     for (var b in breeds) {
       html += '<option value="' + b + '">' + breeds[b] + '</option>'
     }
-    $('#breed_selector').html(html);
-    html = '<option value=""></option>';
+    $('#breed_selector').html(html).removeAttr('disabled');
+    html = '';
     for (var w in drug_worm) {
-      html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+      if (drug_worm[w] != 'Другое')
+        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
     }
-    $('#worm_drug_selector').html(html);
-    html = '<option value=""></option>';
     for (var w in drug_tick) {
       html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
     }
-    $('#tick_drug_selector').html(html);
+    $('#worm_drug_selector').html(html).removeAttr('disabled');
+  }).on('change', '#my_pets_selector', function() {
+    if (!$(this).val()) return;
+    var id = parseInt(APP_DATA.pets[$(this).val()].species_id);
+    var drug_worm = APP_DATA.library.drugs[id][1];
+    var drug_tick = APP_DATA.library.drugs[id][2];
+    var html = '<option value="0">Не указан</option>';
+    for (var w in drug_worm) {
+      if (drug_worm[w] != 'Другое')
+        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+    }
+    for (var w in drug_tick) {
+      html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
+    }
+    $('#notify_drug_selector').html(html).removeAttr('disabled').trigger('change');
+  }).on('change', '#notify_drug_selector', function() {
+    if ($(this).val() != 0) {
+      $('#drug_care_text').show();
+    } else {
+      $('#drug_care_text').hide();
+    }
   }).on('touchend', '.remove_pet', function(e) {
     if (IS_MOVING) return;
     sendRequest($(this).data('action'), $(e.target).attr('data-params'), 'post', function(d) {
@@ -189,39 +268,72 @@ $(document).ready(function() {
     });
   }).on('touchend', '.item-cover', function() {
     var checked = $(this).attr('aria-checked') == 'true' ? true : false;
-    var inputs = $(this).parents('.input_wrapper').find('input');
+    var inputs = $(this).parents('.input_wrapper').find('input[type="datetime-local"]');
     if (checked) {
       inputs.removeAttr('disabled');
     } else {
       inputs.val('').attr('disabled', 'disabled');
     }
+  }).on('keyup change', '#new_user_password', function() {
+    if ($(this).val() != '')
+      $('#old_user_password').show().find('input').addClass('required');
+    else
+      $('#old_user_password').hide().find('input').removeClass('required');
+  }).on('touchend', '.logout', function() {
+    if (IS_MOVING) return;
+    APP_DATA.token = '';
+    window.localStorage.removeItem('_token');
+    switchTo('login');
+  }).on('touchend', '.sex_block', function() {
+    if (IS_MOVING) return;
+    $(this).addClass('active').siblings().removeClass('active');
+    $(this).siblings('input').val($(this).data('val'));
+  }).on('touchend', function(e) {
+    if (IS_MOVING) return;
+    if ($(e.target).attr('id') != 'open_menu')
+      $('#menu_wrapper').removeClass('active');
   });
 
-  sendRequest('/library/get', 'names=cat_breeds,dog_breeds,drugs,messages,categories', 'get', function(d) {
+  sendRequest('/library/get', 'names=cat_breeds,dog_breeds,drugs,messages,categories,pages,areas,conf,periodicities', 'get', function(d) {
     APP_DATA.library = d.result;
     var categories = d.result.categories;
-    var html = '<option value=""></option>';
+    var areas = d.result.areas;
+    var html = '';
     for (var c in categories) {
       html += '<option value="' + c + '">' + categories[c] + '</option>';
     }
     $('#feedback_category_id').html(html);
+
+    html = '';
+    for (var c in areas) {
+      html += '<option value="' + c + '">' + areas[c] + '</option>';
+    }
+    $('.put_regions').html(html);
+
+
+    if (window.localStorage.getItem('_token')) {
+      APP_DATA.token = window.localStorage.getItem('_token');
+      initApp();
+      checkReg(true);
+    } else {
+      switchTo('login');
+    }
   });
 
-  if (window.localStorage.getItem('_token')) {
-    APP_DATA.token = window.localStorage.getItem('_token');
-    switchTo('event_main');
-    initApp();
-  } else {
-    switchTo('login');
-  }
+  $('input[name="phone"]').mask("+7 9999999999");
 });
 
+function recoverMessage() {
+  IonicAlert('Успешно', 'Запрос на восстановление пароля отправлен');
+  switchTo('login');
+}
 
 function loginSuccess(d) {
   if (d.result && d.result.token) {
     APP_DATA.token = d.result.token;
     window.localStorage.setItem('_token', APP_DATA.token);
     initApp();
+    $('#login_form input, #approve_form input').blur();
     return true;
   } else {
     console.log(d);
@@ -230,10 +342,31 @@ function loginSuccess(d) {
   }
 }
 
+function registerSuccess(d) {
+  var n = $('#register_phone').val();
+  var p = $('#register_pwd').val();
+  $('#login_phone').val(n);
+  $('#login_pwd').val(p);
+  switchTo('approve');
+}
+
+function approveSuccess(d) {
+  $('#login_form').submit();
+}
+
+function orderCompleted(d) {
+  var gift_id = $('#gift_order').find('input[name="gift_id"]').val();
+  APP_DATA.points_summary = parseInt(APP_DATA.user.points) - parseInt(APP_DATA.gifts[gift_id].points);
+  APP_DATA.user.points = APP_DATA.points_summary;
+  recalcPoints();
+  switchTo('gift_list');
+}
+
 function registerBefore(t) {
   var checkboxes = $(t).find('input[type="checkbox"]');
 
-  if (checkboxes[0].checked && checkboxes[1].checked) {
+  if (checkboxes[0].checked) {
+    $('#approve_phone').val($('#register_phone').val());
     return true;
   } else {
     IonicAlert('Ошибка', 'Примите условия пользования приложением');
@@ -245,9 +378,17 @@ function switchToItem(screen, params) {
   var gift = APP_DATA.gifts[params.id];
   screen.find('.gift_photo img').attr('src', imageIdtoUrl(gift.img));
   screen.find('.gift_title').html(gift.name);
-  var p = Math.floor(gift.points/APP_DATA.max_points * 100);
+  var gp = Math.floor(gift.points/APP_DATA.max_points * 100);
+  var p = APP_DATA.max_percent;
+  if (p >= gp) {
+    screen.find('.fake_submit_button').removeClass('disabled');
+    p = gp;
+  } else {
+    screen.find('.fake_submit_button').addClass('disabled');
+  }
   screen.find('.gift_status_percent span').html(p);
   screen.find('.gift_status_overlay').css('height', p + '%');
+  screen.find('.fake_submit_button').attr('data-param', '{"gift_id": ' + gift.id + '}')
 }
 
 function openCategory(screen, params) {
@@ -257,13 +398,18 @@ function openCategory(screen, params) {
 
 function openArticle(screen, params) {
   var article = APP_DATA.publications[params.cat_id].articles[params.id];
-  $('.disease_header').html(article.name);
-  $('.disease_text').html(article.description);
+  screen.find('.disease_header').html(article.name);
+  screen.find('.disease_text').html(article.description);
   if (article.img) {
     $('.disease_image').attr('src', imageIdtoUrl(article.img)).show();
   } else {
     $('.disease_image').hide();
   }
+}
+function openFeedback(screen, params) {
+  var article = APP_DATA.feedback[params.id];
+  screen.find('.disease_header').html(article.msg);
+  screen.find('.disease_text').html(article.response);
 }
 
 function loadPartnersMap(screen, params) {
@@ -329,7 +475,7 @@ function updatePetList() {
     var pets = d.result;
     APP_DATA.pets = pets;
     var html = '';
-    var s_html = '<option value=""></option>';
+    var s_html = '';
     var url;
     var obj;
     for (var i in pets) {
@@ -347,7 +493,7 @@ function updatePetList() {
       s_html += '<option value="' + i + '">' + pets[i].name + '</option>';
     }
     $('.pet_list_wrapper').html(html);
-    $('#my_pets_selector').html(s_html);
+    $('#my_pets_selector').html(s_html).trigger('change');
   });
 }
 function updateEventsList() {
@@ -373,10 +519,63 @@ function updateEventsList() {
   });
 }
 
+function checkReg(switchScr) {
+  if (!APP_DATA.library || !APP_DATA.user) {
+    setTimeout(function() {
+      checkReg(switchScr);
+    }, 200);
+    return;
+  }
+  var av = APP_DATA.library.conf.available_areas;
+  var in_reg = (av.indexOf(parseInt(APP_DATA.user.region_id)) > -1) ? true : false;
+  if (in_reg) {
+    $('.moscow_content').show();
+    $('.regions_content').hide();
+  } else {
+    $('.moscow_content').hide();
+    $('.regions_content').show();
+  }
+  if (switchScr) {
+    if (in_reg) {
+      switchTo('event_main');
+      $('.footer_nav.icon4').addClass('active');
+    } else {
+      switchTo('pet_list');
+      $('.footer_nav.icon5').addClass('active');
+    }
+  }
+  return in_reg;
+}
+function checkUserRegion() {
+  if (APP_DATA.user.region_id == '') {
+    IonicAlert('Ошибка', 'Выберите регион в личном кабинете');
+    switchTo('personal');
+    return false;
+  } else if (!checkReg()) {
+    IonicAlert('Ошибка', 'В вашем регионе акция не проводится');
+    return false;
+  }
+  return true;
+}
+
+function checkRegionForContent() {
+  $('#edit_personal').find('input,select').each(function(i,e) {
+    APP_DATA.user[$(e).attr('name')] = $(e).val();
+  });
+  checkReg();
+  IonicAlert('Успешно', 'Данные сохранены');
+}
+
+function loadTextPage(screen, params) {
+  $('.header .header_text').html(APP_DATA.library.pages[params.id].title);
+  screen.find('.header_text').html(APP_DATA.library.pages[params.id].title);
+  screen.find('.text_page_content').html(APP_DATA.library.pages[params.id].contents);
+}
+
 function addEventNotify(d, name) {
   var options = {
     id: d.result,
-    text: 'Напоминание о событии: ' + name,
+    text: name,
     at: new Date(moment($('#is_notify_value').val()).toISOString())
   };
   cordova.plugins.notification.local.schedule(options);
@@ -395,14 +594,22 @@ function switchTo(screen, params, func) {
   var to_elem = $('.screen_' + screen);
   if (to_elem.hasClass('brown_bg')) $('.content').addClass('brown_bg');
   else $('.content').removeClass('brown_bg');
-  if (to_elem.hasClass('no_footer')) $('.footer, #open_menu').hide()
+  if (to_elem.hasClass('no_footer')) $('.footer, #open_menu').hide();
   else $('.footer, #open_menu').show();
   if (!to_elem.find('.nav_header').length) {
     $('.header .nav_header').hide();
   } else {
     $('.header .nav_header').html(to_elem.find('.nav_header').html()).show();
   }
-  if (to_elem.find('form').length && to_elem.find('form').attr('id') != 'edit_personal') to_elem.find('form')[0].reset();
+  if (to_elem.find('form').length && to_elem.find('form').attr('id') != 'edit_personal') {
+    to_elem.find('form')[0].reset();
+    to_elem.find('.get_image_wrapper').removeClass('active').removeAttr('style');
+    to_elem.find('.sex_block').removeClass('active');
+    to_elem.find('#species_selector label').removeClass('checked').find('input').prop('checked', false);
+    to_elem.find('#worm_drug_selector, #breed_selector').html('').attr('disabled', 'disabled');
+    to_elem.find('#drug_care_text').hide();
+    to_elem.find('input[name="img"]').val('');
+  }
   if (params) {
     if (typeof params == 'string') {
       try {
@@ -416,9 +623,19 @@ function switchTo(screen, params, func) {
         case 'pet_card':
           $('#species_selector').find('input[value="' + params.species_id + '"]').prop('checked', true).trigger('change');
           $('.remove_pet').show().attr('data-params', 'id=' + params.id);
+          $('.sex_block[data-val="' + params.sex_id + '"]').addClass('active');
           break;
         case 'event_form':
           $('.remove_event').show().attr('data-params', 'id=' + params.id);
+          break;
+        case 'text_page':
+          var id = params.id;
+          break;
+        case 'gift_order':
+          $('#order_phone').val(APP_DATA.user.phone);
+          break;
+        case 'edit_personal':
+
           break;
       }
       for (var p in params) {
@@ -436,7 +653,8 @@ function switchTo(screen, params, func) {
             }
             break;
           default:
-            to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
+            if (p != 'species_id')
+              to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
             break;
         }
       }
@@ -450,8 +668,12 @@ function switchTo(screen, params, func) {
   setTimeout(function() {
     $('.section_wrapper').removeClass('active');
     to_elem.addClass('active');
-    $('#menu_wrapper').removeClass('active');
   }, 100);
+}
+
+function recalcPoints() {
+  APP_DATA.max_percent = Math.floor(APP_DATA.points_summary/APP_DATA.max_points * 100);
+  $('.heart_percent').html(APP_DATA.max_percent);
 }
 
 function translateError(err) {
@@ -516,18 +738,63 @@ function sendRequest(path, params, method, callback) {
 }
 
 function imageIdtoUrl(id) {
-  return API_URL + "/data/img/" + id + ".jpg";
+  return API_URL + "/image/draw/500x500/" + id + ".jpg";
+}
+
+function updateAppInfo() {
+  alert('Updating...');
 }
 
 function initApp() {
   updatePetList();
   updateEventsList();
-  sendRequest('/bill/list', '', 'get', function(d) {
-    APP_DATA.bills = d.result;
-    APP_DATA.points_summary = 0;
-    for (var b in APP_DATA.bills) {
-      APP_DATA.points_summary += parseInt(APP_DATA.bills[b].points);
+  sendRequest('/article/list', '', 'get', function(d) {
+    var publications = {};
+    var articles = d.result.articles;
+    var categories = d.result.categories;
+    var cat;
+    for (var a in articles) {
+      cat = articles[a].category_id;
+      if (!publications[cat]) {
+        publications[cat] = {
+          name: categories[cat].name,
+          articles: {}
+        }
+      }
+      publications[cat].articles[a] = articles[a];
     }
+    APP_DATA.publications = publications;
+    var html = '';
+    /*for (var p in publications) {
+      html += "<div class='art_category_item switch_screen' data-to='dis_list' data-function='openCategory' data-param='{\"id\":\"" + p + "\"}'>" + publications[p].name + "</div>";
+    }
+    $('.art_categories_wrapper').html(html);
+    html = '';*/
+    for (var a in articles) {
+      html += "<div class='dis_list_item switch_screen art_category_" + articles[a].category_id + "' data-to='disease' data-function='openArticle' data-param='{\"id\":\"" + a + "\",\"cat_id\":\"" + articles[a].category_id + "\"}'>" + articles[a].name + "</div>";
+    }
+    $('.dis_list_wrapper').html(html);
+  });
+  sendRequest('/user/info', '', 'get', function(d) {
+    var user = d.result;
+    APP_DATA.points_summary = parseInt(user.points);
+    if (user.fields) {
+      var fields = JSON.parse(user.fields);
+      for (var f in fields) {
+        user[f] = fields[f];
+      }
+    }
+    APP_DATA.user = user;
+    var user_form = $('#edit_personal');
+    for (var p in user) {
+      if (p != 'img')
+        user_form.find('input[name="' + p + '"], select[name="' + p + '"]').val(user[p]);
+      else {
+        user_form.find('input[name="' + p + '"]').val(user[p]).parent().css('background-image', 'url("' + imageIdtoUrl(user[p]) + '")').addClass('active');
+      }
+    }
+    $('.user_region').val(JSON.parse(APP_DATA.user.fields)['region_id']);
+
     sendRequest('/gift/list', '', 'get', function(d) {
       var gifts = d.result;
 
@@ -546,61 +813,22 @@ function initApp() {
           "<div class='gift_item_photo'><img src='" + imageIdtoUrl(gifts[g].img) + "'></div>"+
           "<div class='gift_item_title'>"+
           "<small>" + gifts[g].name + "</small>"+
-          "<b>" + Math.floor(gifts[g].points/max * 100) + "%</b>"+
+          "<b>" + Math.floor(gifts[g].points/max * 100) + "</b>"+
+          "<small>баллов</small>"+
           "</div>"+
           "</div>";
       }
       gifts[max_id].final = true;
       APP_DATA.max_points = max;
       APP_DATA.gifts = gifts;
-      APP_DATA.max_percent = Math.floor(APP_DATA.points_summary/APP_DATA.max_points * 100);
-      $('.heart_percent').html(APP_DATA.max_percent);
+      recalcPoints();
       $('.gift_list_wrapper').html(html);
     });
   });
-  sendRequest('/article/list', '', 'get', function(d) {
-    var publications = {};
-    var articles = d.result.articles;
-    var categories = d.result.categories;
-    var cat;
-    for (var a in articles) {
-      cat = articles[a].category_id;
-      if (!publications[cat]) {
-        publications[cat] = {
-          name: categories[cat].name,
-          articles: {}
-        }
-      }
-      publications[cat].articles[a] = articles[a];
-    }
-    APP_DATA.publications = publications;
-    var html = '';
-    for (var p in publications) {
-      html += "<div class='art_category_item switch_screen' data-to='dis_list' data-function='openCategory' data-param='{\"id\":\"" + p + "\"}'>" + publications[p].name + "</div>";
-    }
-    $('.art_categories_wrapper').html(html);
-    html = '';
-    for (var a in articles) {
-      html += "<div class='dis_list_item switch_screen art_category_" + articles[a].category_id + "' data-to='disease' data-function='openArticle' data-param='{\"id\":\"" + a + "\",\"cat_id\":\"" + articles[a].category_id + "\"}'>" + articles[a].name + "</div>";
-    }
-    $('.dis_list_wrapper').html(html);
-  });
-  sendRequest('/user/info', '', 'get', function(d) {
-    var user = d.result;
-    APP_DATA.user = user;
-    var user_form = $('#edit_personal');
-    for (var p in user) {
-      if (p != 'img')
-        user_form.find('input[name="' + p + '"], select[name="' + p + '"]').val(user[p]);
-      else {
-        user_form.find('input[name="' + p + '"]').val(user[p]).parent().css('background-image', 'url("' + imageIdtoUrl(user[p]) + '")').addClass('active');
-      }
-    }
-  });
   sendRequest('/event/list', '', 'get', function(d) {
-    var actions = d.result;
-    APP_DATA.actions = actions;
+    APP_DATA.actions = d.result.events;
     var html = '';
+    var actions = d.result.events;
     for (var a in actions) {
       html += "<img src='" + imageIdtoUrl(actions[a].img) + "' alt='' class='switch_screen' data-to='partners_map' data-param='{\"id\":" + a + ",\"network_id\": " + actions[a].network_id + "}' data-function='loadPartnersMap'>";
     }
@@ -623,5 +851,14 @@ function initApp() {
       stores_networks[net].stores[a] = stores[a];
     }
     APP_DATA.stores_networks = stores_networks;
+  });
+  sendRequest('/feedback/list', '', 'get', function(d) {
+    var quests = d.result;
+    APP_DATA.feedback = quests;
+    var html = '';
+    for (var a in quests) {
+      html += "<div class='dis_list_item switch_screen quest_list_item' data-to='feedback_item' data-function='openFeedback' data-param='{\"id\":\"" + a + "\",\"id\":\"" + a + "\"}'>" + quests[a].msg + "</div>";
+    }
+    $('.quest_list_wrapper').html(html);
   });
 }
