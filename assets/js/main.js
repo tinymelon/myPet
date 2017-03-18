@@ -81,7 +81,7 @@ document.addEventListener("deviceready", function() {
   });
 
   push.on('registration', function(data) {
-    $('#device_id').val(data.registrationId);
+    $('#dev_token').val(data.registrationId);
   });
 
   push.on('notification', function(data) {
