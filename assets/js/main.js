@@ -71,11 +71,13 @@ document.addEventListener("deviceready", function() {
 
   var push = PushNotification.init({
     android: {
-      senderID: "564788632487"
+      senderID: "564788632487",
+      sound: "true"
     },
     ios: {
       alert: "true",
       badge: "true",
+      clearBadge: "true",
       sound: "true"
     }
   });
@@ -85,8 +87,10 @@ document.addEventListener("deviceready", function() {
   });
 
   push.on('notification', function(data) {
-    alert(JSON.stringify(data));
-    updateAppInfo();
+    if (data && data.response == 'userinfo')
+      updateScoresInfo();
+    else
+      updateAppInfo();
   });
 
   push.on('error', function(e) {
@@ -94,7 +98,6 @@ document.addEventListener("deviceready", function() {
   });
 
 }, false);
-document.addEventListener("resume", updateAppInfo, false);
 
 $(document).ready(function() {
   $('body').on('touchstart', function(e) {
@@ -742,7 +745,54 @@ function imageIdtoUrl(id) {
 }
 
 function updateAppInfo() {
-  alert('Updating...');
+  sendRequest('/event/list', '', 'get', function(d) {
+    APP_DATA.actions = d.result.events;
+    var html = '';
+    var actions = d.result.events;
+    for (var a in actions) {
+      html += "<img src='" + imageIdtoUrl(actions[a].img) + "' alt='' class='switch_screen' data-to='partners_map' data-param='{\"id\":" + a + ",\"network_id\": " + actions[a].network_id + "}' data-function='loadPartnersMap'>";
+    }
+    $('.partners_events').html(html);
+  });
+  sendRequest('/article/list', '', 'get', function(d) {
+    var publications = {};
+    var articles = d.result.articles;
+    var categories = d.result.categories;
+    var cat;
+    for (var a in articles) {
+      cat = articles[a].category_id;
+      if (!publications[cat]) {
+        publications[cat] = {
+          name: categories[cat].name,
+          articles: {}
+        }
+      }
+      publications[cat].articles[a] = articles[a];
+    }
+    APP_DATA.publications = publications;
+    var html = '';
+    for (var a in articles) {
+      html += "<div class='dis_list_item switch_screen art_category_" + articles[a].category_id + "' data-to='disease' data-function='openArticle' data-param='{\"id\":\"" + a + "\",\"cat_id\":\"" + articles[a].category_id + "\"}'>" + articles[a].name + "</div>";
+    }
+    $('.dis_list_wrapper').html(html);
+  });
+  sendRequest('/feedback/list', '', 'get', function(d) {
+    var quests = d.result;
+    APP_DATA.feedback = quests;
+    var html = '';
+    for (var a in quests) {
+      html += "<div class='dis_list_item switch_screen quest_list_item' data-to='feedback_item' data-function='openFeedback' data-param='{\"id\":\"" + a + "\",\"id\":\"" + a + "\"}'>" + quests[a].msg + "</div>";
+    }
+    $('.quest_list_wrapper').html(html);
+  });
+  updateScoresInfo();
+}
+function updateScoresInfo() {
+  sendRequest('/user/info', '', 'get', function(d) {
+    var user = d.result;
+    APP_DATA.points_summary = parseInt(user.points);
+    recalcPoints();
+  });
 }
 
 function initApp() {
@@ -765,11 +815,6 @@ function initApp() {
     }
     APP_DATA.publications = publications;
     var html = '';
-    /*for (var p in publications) {
-      html += "<div class='art_category_item switch_screen' data-to='dis_list' data-function='openCategory' data-param='{\"id\":\"" + p + "\"}'>" + publications[p].name + "</div>";
-    }
-    $('.art_categories_wrapper').html(html);
-    html = '';*/
     for (var a in articles) {
       html += "<div class='dis_list_item switch_screen art_category_" + articles[a].category_id + "' data-to='disease' data-function='openArticle' data-param='{\"id\":\"" + a + "\",\"cat_id\":\"" + articles[a].category_id + "\"}'>" + articles[a].name + "</div>";
     }
