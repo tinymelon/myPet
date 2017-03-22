@@ -488,6 +488,11 @@ label.dog {
   float: left;
   position: relative;
 }
+#add_event textarea {
+  height: 75px;
+  max-height: 75px;
+  min-height: 75px;
+}
 .screen_add_event .add_event_card:nth-child(1) {
   background-image: url("../assets/images/proc1.png");
 }

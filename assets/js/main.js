@@ -2,6 +2,8 @@ var API_URL = 'https://growthof.me/heart';
 var APP_DATA = {};
 var IS_TEST = false;
 var TOUCH_X, TOUCH_Y, IS_MOVING;
+var justRegistered = false;
+var ScreensHistory = [];
 
 document.addEventListener("deviceready", function() {
   $('body').addClass(device.platform == 'Android' ? 'android' : 'ios');
@@ -12,9 +14,7 @@ document.addEventListener("deviceready", function() {
   cordova.plugins.notification.local.registerPermission(function (granted) {
     // console.log('Permission has been granted: ' + granted);
   });
-  Ionic.platform.registerBackButtonAction(function (event) {
-    event.preventDefault();
-  }, 100);
+  Ionic.platform.registerBackButtonAction(GoBack, 999);
   $('body').on('touchend', '.get_image_wrapper', function(e) {
     if (IS_MOVING) return;
     e.preventDefault();
@@ -100,6 +100,12 @@ document.addEventListener("deviceready", function() {
 }, false);
 
 $(document).ready(function() {
+  $('body').on('keypress', function(event){
+    var key = event.which || event.keyCode || event.charCode;
+    if(key == 61){
+      GoBack();
+    }
+  });
   $('body').on('touchstart', function(e) {
     IS_MOVING = false;
     TOUCH_X = e.originalEvent.touches[0].pageX;
@@ -217,7 +223,7 @@ $(document).ready(function() {
     var breeds = id == 1 ? APP_DATA.library.cat_breeds : APP_DATA.library.dog_breeds;
     var drug_worm = APP_DATA.library.drugs[id][1];
     var drug_tick = APP_DATA.library.drugs[id][2];
-    var html = '';
+    var html = '<option value="0">Порода не определена</option>';
     for (var b in breeds) {
       html += '<option value="' + b + '">' + breeds[b] + '</option>'
     }
@@ -354,7 +360,8 @@ function registerSuccess(d) {
 }
 
 function approveSuccess(d) {
-  $('#login_form').submit();
+  $('#login_form').attr('data-to', 'pet_card').submit();
+  justRegistered = true;
 }
 
 function orderCompleted(d) {
@@ -437,7 +444,7 @@ function loadPartnersMap(screen, params) {
       center: [resp.coords.latitude, resp.coords.longitude],
       zoom: zoom,
       behaviors: ['default', 'scrollZoom'],
-      controls: []
+      controls: ['zoomControl']
     });
     var myPlacemark = new ymaps.Placemark([resp.coords.latitude, resp.coords.longitude], {}, {
       preset: 'islands#geolocationIcon'
@@ -544,7 +551,7 @@ function checkReg(switchScr) {
       $('.footer_nav.icon4').addClass('active');
     } else {
       switchTo('pet_list');
-      $('.footer_nav.icon5').addClass('active');
+      $('.footer_nav.icon3').addClass('active');
     }
   }
   return in_reg;
@@ -593,7 +600,7 @@ function addEventNotify(d, name) {
   $("#add_event")[0].reset();
 }
 
-function switchTo(screen, params, func) {
+function switchTo(screen, params, func, isAuto) {
   var to_elem = $('.screen_' + screen);
   if (to_elem.hasClass('brown_bg')) $('.content').addClass('brown_bg');
   else $('.content').removeClass('brown_bg');
@@ -657,7 +664,7 @@ function switchTo(screen, params, func) {
             break;
           default:
             if (p != 'species_id')
-              to_elem.find('input[name="' + p + '"], select[name="' + p + '"]').val(params[p]);
+              to_elem.find('input[name="' + p + '"], select[name="' + p + '"], textarea[name="' + p + '"]').val(params[p]);
             break;
         }
       }
@@ -671,7 +678,20 @@ function switchTo(screen, params, func) {
   setTimeout(function() {
     $('.section_wrapper').removeClass('active');
     to_elem.addClass('active');
+    if (typeof isAuto == 'undefined')
+      ScreensHistory.push({screen: screen, func: func, params: params});
   }, 100);
+}
+
+function GoBack(ev) {
+  //ev.preventDefault();
+  //ev.stopPropagation();
+  var prev = ScreensHistory[ScreensHistory.length - 2];
+  if (prev) {
+    ScreensHistory.pop();
+    switchTo(prev.screen, prev.params, prev.func, true);
+    $('.footer_nav').removeClass('active');
+  }
 }
 
 function recalcPoints() {
@@ -839,6 +859,7 @@ function initApp() {
       }
     }
     $('.user_region').val(JSON.parse(APP_DATA.user.fields)['region_id']);
+    checkReg();
 
     sendRequest('/gift/list', '', 'get', function(d) {
       var gifts = d.result;

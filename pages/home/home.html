@@ -21,7 +21,7 @@
 
 <ion-content>
   <div class="section_wrapper without_header screen_login brown_bg no_footer">
-    <form id="login_form" action="/user/login" data-success="loginSuccess" data-to="event_main">
+    <form id="login_form" action="/user/login" data-success="loginSuccess" data-to="pet_list">
       <input type="hidden" id="app_type" name="os_type_id">
       <input type="hidden" id="device_id" name="device_id">
       <input type="hidden" id="dev_token" name="dev_token">
@@ -253,6 +253,10 @@
             <option value="Покупка корма" data-msg="Хозяин, купи мне что-нибудь вкусное в этот раз!">Покупка корма</option>
             <option value="Другое" data-msg="Напоминание">Другое</option>
           </select>
+        </div>
+        <div class="input_wrapper">
+          <label>Комментарий</label>
+          <textarea name="comment"></textarea>
         </div>
         <div class="input_wrapper">
           <label>Дата</label>
