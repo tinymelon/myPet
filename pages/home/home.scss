@@ -789,6 +789,36 @@ label.dog {
 .sex_block img {
   width: 100%;
 }
+.event_bot_line {
+  margin-top: 12px;
+}
+.event_bot_line:after {
+  clear: both;
+  content: ' ';
+  display: block;
+}
+.event_list_date {
+  float: left;
+  background-color: #eedbb8;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+.event_list_check {
+  float: right;
+  margin-top: -5px;
+  margin-right: 17px;
+}
+.android .event_list_check {
+  padding: 5px;
+}
+#notify_drug_name_wrapper {
+  display: none;
+}
+.we_in_net_content a {
+  display: block;
+  margin-top: 10px;
+}
 
 @media screen and (max-width: 370px) {
   .submit_button, .reg_btn, .fake_submit_button, .remove_btn {

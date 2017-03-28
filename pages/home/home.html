@@ -5,7 +5,7 @@
   <!--<div class="menu_point">Ветеринарные клиники</div>-->
   <div class="menu_point switch_screen" data-to="text_page" data-param='{"id":"1"}' data-function="loadTextPage">Как пользоваться приложением</div>
   <div class="menu_point switch_screen" data-to="text_page" data-param='{"id":"2"}' data-function="loadTextPage">Пользовательское соглашение</div>
-  <div class="menu_point switch_screen" data-to="text_page" data-param='{"id":"3"}' data-function="loadTextPage">Мы в сети</div>
+  <div class="menu_point switch_screen" data-to="we_in_net">Мы в сети</div>
 </div>
 
 <ion-header>
@@ -255,32 +255,42 @@
           </select>
         </div>
         <div class="input_wrapper">
-          <label>Комментарий</label>
-          <textarea name="comment"></textarea>
-        </div>
-        <div class="input_wrapper">
-          <label>Дата</label>
-          <input type="datetime-local" class="required">
-          <input type="hidden" name="datetime">
-        </div>
-        <div class="input_wrapper">
           <label>Питомец</label>
           <select name="pet_id" id="my_pets_selector" class="required"></select>
         </div>
-        <div class="input_wrapper">
+        <div class="input_wrapper" id="notify_drug_wrapper">
           <label>Препарат</label>
           <select type="text" name="drug" id="notify_drug_selector" disabled></select>
         </div>
+        <div class="input_wrapper" id="notify_drug_name_wrapper">
+          <label>Название препарата</label>
+          <input type="text" name="drug_name">
+        </div>
+        <div class="input_wrapper">
+          <label>Дата последней обработки</label>
+          <input type="datetime-local" class="required" id="event_last_date">
+          <input type="hidden" name="datetime">
+        </div>
         <div class="input_wrapper with_checkbox">
-          <label>Напомнить мне</label>
+          <label>Напоминать мне</label>
           <ion-toggle color="secondary" checked="true" id="add_event_notify"></ion-toggle>
-          <input type="datetime-local">
-          <input type="hidden" name="notify" id="is_notify_value">
+          <input type="hidden" name="is_notify" value="1">
+          <select name="notify" id="is_notify_value">
+            <option value="1" selected>Ежемесячно</option>
+            <option value="3">Раз в 3 месяца</option>
+            <option value="6">Раз в пол года</option>
+            <option value="8">Раз в 8 месяцев</option>
+            <option value="12">Раз в год</option>
+          </select>
+        </div>
+        <div class="input_wrapper">
+          <label>Комментарий</label>
+          <textarea name="comment"></textarea>
         </div>
       </div>
       <div class="submit_button">Подтвердить</div>
       <div class="remove_btn remove_event" data-action="/memento/delete">Удалить</div>
-      <div id="drug_care_text">Я подтверждаю, что следую рекомендациям ветеринарного врача или друго квалифицированного специалиста и прочитал инструкцию по применению препарата.</div>
+      <div id="drug_care_text">Я подтверждаю, что следую рекомендациям ветеринарного врача или другого квалифицированного специалиста и прочитал инструкцию по применению препарата.</div>
     </form>
   </div>
   <div class="section_wrapper screen_personal">
@@ -361,13 +371,14 @@
       <div class="add_event_card switch_screen" data-to="dis_list" data-function='openCategory' data-param='{"id":"14"}'>
         <div>Профилактика и советы</div>
       </div>
-      <div class="add_event_card switch_screen" data-to="dis_list" data-function='openCategory' data-param='{"id":"15"}'>
+      <!--<div class="add_event_card switch_screen" data-to="dis_list" data-function='openCategory' data-param='{"id":"15"}'>
         <div>Вопрос&nbsp;&mdash; ответ</div>
-      </div>
+      </div>-->
     </div>
   </div>
   <div class="section_wrapper screen_add_buy">
     <div class="nav_header">
+      <div class="back_btn switch_screen" data-to="event_main"></div>
       <div class="header_text">Добавление чека</div>
     </div>
     <form id="add_buy" action="/Bill/save" data-before="checkUserRegion" data-message="Чек отправлен на модерацию">
@@ -511,6 +522,7 @@
   </div>
   <div class="section_wrapper screen_text_page">
     <div class="nav_header">
+      <div class="back_btn open_menu"></div>
       <div class="header_text"></div>
     </div>
     <div class="text_page_content"></div>
@@ -528,6 +540,18 @@
       <div class="header_text"></div>
     </div>
     <div class="text_page_content"></div>
+  </div>
+  <div class="section_wrapper screen_we_in_net">
+    <div class="nav_header">
+      <div class="back_btn open_menu"></div>
+      <div class="header_text">Мы в сети</div>
+    </div>
+    <div class="we_in_net_content">
+      <a href="https://m.vk.com/bayer_pets"><img src="assets/images/!bunner_VK.JPG" alt=""></a>
+      <a href="https://m.facebook.com/bayerpetsrussia"><img src="assets/images/!bunner_FB.JPG" alt=""></a>
+      <a href="https://m.youtube.com/channel/UCcZ_cfQaauvUzF3Zx-Vzssw"><img src="assets/images/!bunner_YouTube.jpg" alt=""></a>
+      <a href="tel://88002342001"><img src="assets/images/!bunner_hot-line.jpg" alt=""></a>
+    </div>
   </div>
 </ion-content>
 

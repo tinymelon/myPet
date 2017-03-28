@@ -97,15 +97,51 @@ document.addEventListener("deviceready", function() {
     alert(e.message)
   });
 
+  document.addEventListener("resume", onResume, false);
+  function onResume() {
+    setTimeout(function() {
+      var int = 2629746000; //1 month
+      for (var e in APP_DATA.events) {
+        var event = APP_DATA.events[e];
+        if (event.is_notify == 1) {
+          cordova.plugins.notification.local.isPresent(parseInt(e), function (present) {
+            if (!present) {
+              var cur = moment(event.datetime, 'YYYY-MM-DD HH:mm:ss').valueOf();
+              var date = new Date(moment(checkEventTime(cur, parseInt(event.notify) * int)).toISOString());
+              var options = {
+                id: parseInt(e),
+                text: $('#event_name_selector').find('option[value="' + event.name + '"]').data('msg'),
+                at: date
+              };
+              if (typeof cordova != 'undefined') {
+                cordova.plugins.notification.local.schedule(options);
+              }
+              updateEventsList();
+            }
+          });
+        }
+      }
+    }, 0);
+  }
+
 }, false);
 
+function checkEventTime(time, interval) {
+  var now = moment().valueOf();
+  var nt = time + interval;
+  while (nt < now) {
+    nt += interval;
+  }
+  return nt;
+}
+
 $(document).ready(function() {
-  $('body').on('keypress', function(event){
+  /*$('body').on('keypress', function(event){
     var key = event.which || event.keyCode || event.charCode;
     if(key == 61){
       GoBack();
     }
-  });
+  });*/
   $('body').on('touchstart', function(e) {
     IS_MOVING = false;
     TOUCH_X = e.originalEvent.touches[0].pageX;
@@ -114,7 +150,7 @@ $(document).ready(function() {
     if (Math.abs(TOUCH_X - e.originalEvent.touches[0].pageX) > 10 || Math.abs(TOUCH_Y - e.originalEvent.touches[0].pageY)) {
       IS_MOVING = true;
     }
-  }).on('touchend', '#open_menu', function() {
+  }).on('touchend', '#open_menu, .open_menu', function() {
     $('#menu_wrapper').toggleClass('active');
   }).on('change', '.select_type input', function() {
     $(this).parents('label').addClass('checked').siblings('label').removeClass('checked');
@@ -123,6 +159,57 @@ $(document).ready(function() {
     var form = $(this).parents('form').submit();
   }).on('touchend', '.switch_screen', function (e) {
     if (IS_MOVING || $(this).hasClass('disabled')) return;
+    if ($(e.target).hasClass('toggle') || $(e.target).hasClass('event_list_check') || $(e.target).parents('.event_list_check').length) {
+      var el = $(e.target).parents('.event_item').find('button');
+      var id = el.parents('.event_item').attr('data-id');
+      var params = APP_DATA.events[id];
+      var checked = el.attr('aria-checked') == 'true' ? true : false;
+      if (checked) {
+        el.attr('aria-checked', 'false');
+        el.siblings('.toggle-icon').removeClass('toggle-checked');
+        if (typeof cordova != 'undefined') {
+          id = parseInt(id);
+          cordova.plugins.notification.local.cancel(id);
+          cordova.plugins.notification.local.clear(id);
+        }
+        params.is_notify = 0;
+        APP_DATA.events[id].is_notify = 0;
+        var par_str = '';
+        for (var p in params) {
+          par_str += p + '=' + params[p] + '&';
+        }
+        par_str += 'id=' + id;
+        sendRequest('/memento/save', par_str, 'post', function() {
+          updateEventsList(true);
+        });
+      } else {
+        el.attr('aria-checked', 'true');
+        el.siblings('.toggle-icon').addClass('toggle-checked');
+        var per = parseInt(params.notify);
+        var step = 2629746000; // 1 month
+        var cur_date = moment(params.datetime, 'YYYY-MM-DD HH:mm:ss').valueOf();
+        var date = new Date(moment(checkEventTime(cur_date, per * step)).toISOString());
+        var options = {
+          id: parseInt(id),
+          text: $('#event_name_selector').find('option[value="' + params.name + '"]').data('msg'),
+          at: date
+        };
+        if (typeof cordova != 'undefined') {
+          cordova.plugins.notification.local.schedule(options);
+        }
+        params.is_notify = 1;
+        APP_DATA.events[id].is_notify = 1;
+        var par_str = '';
+        for (var p in params) {
+          par_str += p + '=' + params[p] + '&';
+        }
+        par_str += 'id=' + id;
+        sendRequest('/memento/save', par_str, 'post', function() {
+          updateEventsList(true);
+        });
+      }
+      return;
+    }
     e.preventDefault();
     var screen = $(this).data('to');
     var params;
@@ -201,7 +288,10 @@ $(document).ready(function() {
             break;
           case 'events_list':
             updateEventsList();
-            if ($('#is_notify_value').val().length > 5) addEventNotify(d, $('#event_name_selector').find('option:selected').data('msg'));
+            if ($(_this).find('#add_event_notify').find('button').attr('aria-checked') == 'true') {
+              addEventNotify(d, $('#event_name_selector').find('option:selected').data('msg'));
+            }
+            switchTo('events_list');
             break;
         }
         if (to) switchTo(to);
@@ -216,6 +306,8 @@ $(document).ready(function() {
             APP_DATA.user[n] = v;
           });
         }
+      } else {
+        if (to) switchTo(to);
       }
     })
   }).on('change', '#species_selector input', function() {
@@ -230,12 +322,12 @@ $(document).ready(function() {
     $('#breed_selector').html(html).removeAttr('disabled');
     html = '';
     for (var w in drug_worm) {
-      if (drug_worm[w] != 'Другое')
-        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+      html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
     }
     for (var w in drug_tick) {
       html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
     }
+    html += '<option value="000">Другое</option>';
     $('#worm_drug_selector').html(html).removeAttr('disabled');
   }).on('change', '#my_pets_selector', function() {
     if (!$(this).val()) return;
@@ -244,12 +336,12 @@ $(document).ready(function() {
     var drug_tick = APP_DATA.library.drugs[id][2];
     var html = '<option value="0">Не указан</option>';
     for (var w in drug_worm) {
-      if (drug_worm[w] != 'Другое')
-        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+      html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
     }
     for (var w in drug_tick) {
       html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
     }
+    html += '<option value="000">Другое</option>';
     $('#notify_drug_selector').html(html).removeAttr('disabled').trigger('change');
   }).on('change', '#notify_drug_selector', function() {
     if ($(this).val() != 0) {
@@ -269,20 +361,20 @@ $(document).ready(function() {
     if (IS_MOVING) return;
     var params = $(e.target).attr('data-params');
     sendRequest($(this).data('action'), $(e.target).attr('data-params'), 'post', function(d) {
-      cordova.plugins.notification.local.cancel(params.match(/\d+/)[0]);
+      if (typeof cordova != 'undefined') {
+        var id = parseInt(params.match(/\d+/)[0]);
+        cordova.plugins.notification.local.get(id, function (present) {
+          if (present) {
+            cordova.plugins.notification.local.cancel(id);
+          }
+        });
+      }
+
       updateEventsList();
       switchTo('events_list');
       $("#add_event")[0].reset();
       $("#add_event").find('input[name="id"]').val('');
     });
-  }).on('touchend', '.item-cover', function() {
-    var checked = $(this).attr('aria-checked') == 'true' ? true : false;
-    var inputs = $(this).parents('.input_wrapper').find('input[type="datetime-local"]');
-    if (checked) {
-      inputs.removeAttr('disabled');
-    } else {
-      inputs.val('').attr('disabled', 'disabled');
-    }
   }).on('keyup change', '#new_user_password', function() {
     if ($(this).val() != '')
       $('#old_user_password').show().find('input').addClass('required');
@@ -299,8 +391,32 @@ $(document).ready(function() {
     $(this).siblings('input').val($(this).data('val'));
   }).on('touchend', function(e) {
     if (IS_MOVING) return;
-    if ($(e.target).attr('id') != 'open_menu')
+    if ($(e.target).attr('id') != 'open_menu' && !$(e.target).hasClass('open_menu'))
       $('#menu_wrapper').removeClass('active');
+  }).on('change', '#event_name_selector', function() {
+    switch ($(this).val()) {
+      case 'Визит к грумеру':
+      case 'Покупка корма':
+        $('#notify_drug_wrapper').hide().find('select').val('0');
+        break;
+      default:
+        $('#notify_drug_wrapper').show();
+        break;
+    }
+  }).on('change', '#notify_drug_selector', function() {
+    if ($(this).val() == '000') {
+      $('#notify_drug_name_wrapper').show();
+    } else {
+      $('#notify_drug_name_wrapper').hide();
+    }
+  }).on('touchend', '.item-cover', function() {
+    var checked = $(this).attr('aria-checked') == 'true' ? true : false;
+    var input = $(this).parents('.input_wrapper').find('input[name="is_notify"]');
+    if (checked) {
+      input.val('1');
+    } else {
+      input.val('0');
+    }
   });
 
   sendRequest('/library/get', 'names=cat_breeds,dog_breeds,drugs,messages,categories,pages,areas,conf,periodicities', 'get', function(d) {
@@ -506,26 +622,95 @@ function updatePetList() {
     $('#my_pets_selector').html(s_html).trigger('change');
   });
 }
-function updateEventsList() {
-  sendRequest('/memento/list', '', 'get', function(d) {
-    var events = d.result;
-    APP_DATA.events = events;
+function updateEventsList(is_local) {
+  if (!is_local) {
+    sendRequest('/memento/list', '', 'get', function(d) {
+      var events = d.result;
+      APP_DATA.events = events;
+      updateEv(events);
+    });
+  } else {
+    updateEv(APP_DATA.events);
+  }
+
+
+  function updateEv(events) {
     var html = '';
-    var url;
     var obj;
-    for (var i in events) {
-      url = imageIdtoUrl(events[i].img);
-      obj = {};
-      for (var p in events[i]) {
-        obj[p] = events[i][p];
+    var swich;
+    if (typeof cordova != 'undefined') {
+      $('#events_list_wrapper').html('');
+      for (var i in events) {
+        printNotify(events[i], i);
       }
-      obj.id = i;
-      html +=
-        "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-param='" + JSON.stringify(obj) + "'>"+
-          events[i].name +
-        "</div>";
+    } else {
+      for (var i in events) {
+        swich = $('#add_event_notify').clone();
+        swich.removeAttr('id');
+        obj = {};
+        for (var p in events[i]) {
+          obj[p] = events[i][p];
+        }
+        obj.id = i;
+        var date = moment(events[i].datetime).format("DD.MM.YYYY, HH:mm");
+        if (events[i].is_notify == 1) {
+          swich.find('button').attr('aria-checked', 'true');
+          swich.find('.toggle-icon').addClass('toggle-checked');
+        } else {
+          swich.find('button').attr('aria-checked', 'false');
+          swich.find('.toggle-icon').removeClass('toggle-checked');
+        }
+        html +=
+          "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
+          '<div class="event_name_self">' + events[i].name + '</div>' +
+          '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
+          "</div>";
+
+      }
+      $('#events_list_wrapper').html(html);
     }
-    $('#events_list_wrapper').html(html);
+  }
+}
+
+function printNotify(event, i) {
+  var obj;
+  var swich;
+  swich = $('#add_event_notify').clone();
+  swich.removeAttr('id');
+  obj = {};
+  for (var p in event) {
+    obj[p] = event[p];
+  }
+  obj.id = i;
+  var id = parseInt(i);
+
+  cordova.plugins.notification.local.isPresent(id, function (present) {
+    if (present) {
+      cordova.plugins.notification.local.get(id, function (notif) {
+        if (event.is_notify == 1) {
+          swich.find('button').attr('aria-checked', 'true');
+          swich.find('.toggle-icon').addClass('toggle-checked');
+        } else {
+          swich.find('button').attr('aria-checked', 'false');
+          swich.find('.toggle-icon').removeClass('toggle-checked');
+        }
+        var date = moment(notif.at * 1000).format("DD.MM.YYYY, HH:mm");
+        $('#events_list_wrapper').append("" +
+          "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
+          '<div class="event_name_self">' + event.name + '</div>' +
+          '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
+          "</div>");
+      });
+    } else {
+      swich.find('button').attr('aria-checked', 'false');
+      swich.find('.toggle-icon').removeClass('toggle-checked');
+      var date = moment(event.datetime).format("DD.MM.YYYY, HH:mm");
+      $('#events_list_wrapper').append("" +
+        "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
+        '<div class="event_name_self">' + event.name + '</div>' +
+        '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
+        "</div>");
+    }
   });
 }
 
@@ -583,20 +768,20 @@ function loadTextPage(screen, params) {
 }
 
 function addEventNotify(d, name) {
+  var per = parseInt($("#is_notify_value").val());
+  var step = 2629746000; // 1 month
+  var cur_date = moment($('#event_last_date').val()).valueOf();
+  var date = new Date(moment(checkEventTime(cur_date, per * step)).toISOString());
   var options = {
-    id: d.result,
+    id: parseInt(d.result),
     text: name,
-    at: new Date(moment($('#is_notify_value').val()).toISOString())
+    at: date
   };
-  cordova.plugins.notification.local.schedule(options);
-  /*if (not && not.error) {
-    console.log(not.error);
-    IonicAlert('Ошибка', 'Ошибка создания уведомления');
+  if (typeof cordova != 'undefined') {
+    cordova.plugins.notification.local.cancel(parseInt(d.result));
+    cordova.plugins.notification.local.schedule(options);
   }
-  else {*/
-    IonicAlert('Успешно', 'Уведомление добавлено');
-    switchTo('events_list');
-  //}
+  IonicAlert('Успешно', 'Уведомление добавлено');
   $("#add_event")[0].reset();
 }
 
@@ -615,10 +800,10 @@ function switchTo(screen, params, func, isAuto) {
     to_elem.find('form')[0].reset();
     to_elem.find('.get_image_wrapper').removeClass('active').removeAttr('style');
     to_elem.find('.sex_block').removeClass('active');
-    to_elem.find('#species_selector label').removeClass('checked').find('input').prop('checked', false);
+    to_elem.find('#species_selector laevents_list_wrapperel').removeClass('checked').find('input').prop('checked', false);
     to_elem.find('#worm_drug_selector, #breed_selector').html('').attr('disabled', 'disabled');
     to_elem.find('#drug_care_text').hide();
-    to_elem.find('input[name="img"]').val('');
+    to_elem.find('input[name="img"], input[name="id"]').val('');
   }
   if (params) {
     if (typeof params == 'string') {
@@ -637,15 +822,17 @@ function switchTo(screen, params, func, isAuto) {
           break;
         case 'event_form':
           $('.remove_event').show().attr('data-params', 'id=' + params.id);
+          if (params.name == 'Вакцинация') {
+            $('#notify_drug_selector').val('000').trigger('change');
+          } else {
+            $('#notify_drug_selector').val('0').trigger('change');
+          }
           break;
         case 'text_page':
           var id = params.id;
           break;
         case 'gift_order':
           $('#order_phone').val(APP_DATA.user.phone);
-          break;
-        case 'edit_personal':
-
           break;
       }
       for (var p in params) {
@@ -664,7 +851,7 @@ function switchTo(screen, params, func, isAuto) {
             break;
           default:
             if (p != 'species_id')
-              to_elem.find('input[name="' + p + '"], select[name="' + p + '"], textarea[name="' + p + '"]').val(params[p]);
+              to_elem.find('input[name="' + p + '"], select[name="' + p + '"], textarea[name="' + p + '"]').val(params[p]).trigger('change');
             break;
         }
       }
@@ -755,7 +942,7 @@ function sendRequest(path, params, method, callback) {
     },
     error: function (a,b,c) {
       console.log(a,b,c);
-      IonicAlert('Ошибка', 'Ошибка соедмнения с сервером');
+      IonicAlert('Ошибка', 'Ошибка соединения с сервером');
     }
   });
 }
