@@ -106,7 +106,7 @@ document.addEventListener("deviceready", function() {
         if (event.is_notify == 1) {
           cordova.plugins.notification.local.isPresent(parseInt(e), function (present) {
             if (!present) {
-              var cur = moment(event.datetime, 'YYYY-MM-DD HH:mm:ss').valueOf();
+              var cur = moment(event.datetime, 'YYYY-MM-DD').valueOf();
               var date = new Date(moment(checkEventTime(cur, parseInt(event.notify) * int)).toISOString());
               var options = {
                 id: parseInt(e),
@@ -187,7 +187,7 @@ $(document).ready(function() {
         el.siblings('.toggle-icon').addClass('toggle-checked');
         var per = parseInt(params.notify);
         var step = 2629746000; // 1 month
-        var cur_date = moment(params.datetime, 'YYYY-MM-DD HH:mm:ss').valueOf();
+        var cur_date = moment(params.datetime, 'YYYY-MM-DD').valueOf();
         var date = new Date(moment(checkEventTime(cur_date, per * step)).toISOString());
         var options = {
           id: parseInt(id),
@@ -216,8 +216,6 @@ $(document).ready(function() {
     var func;
     if ($(this).data('param')) params = $(this).attr('data-param');
     if ($(this).data('function')) func = $(this).data('function');
-    $('.switch_screen').removeClass('active');
-    $(this).addClass('active');
     switchTo(screen, params, func);
   }).on('submit', 'form', function(e) {
     e.preventDefault();
@@ -226,9 +224,9 @@ $(document).ready(function() {
     $(this).find('.format_phone').each(function(i,e) {
       $(e).val($(e).val().replace(/[^0-9.]/g, ''));
     });
-    $(this).find('input[type="datetime-local"]').each(function(i,e) {
+    $(this).find('input[type="date"]').each(function(i,e) {
       if ($(e).val())
-        $(e).siblings('input').val(moment($(e).val()).format('YYYY-MM-DD HH:mm:ss'));
+        $(e).siblings('input').val(moment($(e).val()).format('YYYY-MM-DD'));
       else
         $(e).siblings('input').val('');
     });
@@ -287,11 +285,13 @@ $(document).ready(function() {
             updatePetList();
             break;
           case 'events_list':
-            updateEventsList();
             if ($(_this).find('#add_event_notify').find('button').attr('aria-checked') == 'true') {
               addEventNotify(d, $('#event_name_selector').find('option:selected').data('msg'));
+            } else {
+              switchTo('events_list');
+              updateEventsList();
             }
-            switchTo('events_list');
+
             break;
         }
         if (to) switchTo(to);
@@ -320,14 +320,11 @@ $(document).ready(function() {
       html += '<option value="' + b + '">' + breeds[b] + '</option>'
     }
     $('#breed_selector').html(html).removeAttr('disabled');
-    html = '';
+    html = '<option value="0">Не выбран</option>';
     for (var w in drug_worm) {
       html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
     }
-    for (var w in drug_tick) {
-      html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
-    }
-    html += '<option value="000">Другое</option>';
+    html += '<option value="9999">Другое</option>';
     $('#worm_drug_selector').html(html).removeAttr('disabled');
   }).on('change', '#my_pets_selector', function() {
     if (!$(this).val()) return;
@@ -335,11 +332,14 @@ $(document).ready(function() {
     var drug_worm = APP_DATA.library.drugs[id][1];
     var drug_tick = APP_DATA.library.drugs[id][2];
     var html = '<option value="0">Не указан</option>';
-    for (var w in drug_worm) {
-      html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
-    }
-    for (var w in drug_tick) {
-      html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
+    if ($('#event_name_selector').val() == 'Обработка от глистов') {
+      for (var w in drug_worm) {
+        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+      }
+    } else {
+      for (var w in drug_tick) {
+        html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
+      }
     }
     html += '<option value="000">Другое</option>';
     $('#notify_drug_selector').html(html).removeAttr('disabled').trigger('change');
@@ -353,6 +353,7 @@ $(document).ready(function() {
     if (IS_MOVING) return;
     sendRequest($(this).data('action'), $(e.target).attr('data-params'), 'post', function(d) {
       updatePetList();
+      updateEventsList();
       switchTo('pet_list');
       $("#add_pet")[0].reset();
       $("#add_pet").find('input[name="id"]').val('');
@@ -397,12 +398,31 @@ $(document).ready(function() {
     switch ($(this).val()) {
       case 'Визит к грумеру':
       case 'Покупка корма':
-        $('#notify_drug_wrapper').hide().find('select').val('0');
+        $('#notify_drug_wrapper').hide().find('select').val('0').trigger('change');
+        break;
+      case 'Вакцинация':
+        $('#notify_drug_wrapper').hide().find('select').val('000').trigger('change');
         break;
       default:
         $('#notify_drug_wrapper').show();
         break;
     }
+    if (!$('#my_pets_selector').val()) return;
+    var id = parseInt(APP_DATA.pets[$('#my_pets_selector').val()].species_id);
+    var drug_worm = APP_DATA.library.drugs[id][1];
+    var drug_tick = APP_DATA.library.drugs[id][2];
+    var html = '<option value="0">Не указан</option>';
+    if ($('#event_name_selector').val() == 'Обработка от глистов') {
+      for (var w in drug_worm) {
+        html += '<option value="' + w + '">' + drug_worm[w] + '</option>'
+      }
+    } else {
+      for (var w in drug_tick) {
+        html += '<option value="' + w + '">' + drug_tick[w] + '</option>'
+      }
+    }
+    html += '<option value="000">Другое</option>';
+    $('#notify_drug_selector').html(html).removeAttr('disabled').trigger('change');
   }).on('change', '#notify_drug_selector', function() {
     if ($(this).val() == '000') {
       $('#notify_drug_name_wrapper').show();
@@ -416,6 +436,12 @@ $(document).ready(function() {
       input.val('1');
     } else {
       input.val('0');
+    }
+  }).on('change', '#worm_drug_selector', function() {
+    if ($(this).val() == '9999') {
+      $('#pet_another_drug').show();
+    } else {
+      $('#pet_another_drug').hide();
     }
   });
 
@@ -500,6 +526,50 @@ function registerBefore(t) {
   }
 }
 
+function petSuccess(d) {
+  var id = d.result;
+  $('.pet_remind').each(function (i, e) {
+    var per_val, last_date, text, name;
+    if ($(e).find('button').attr('aria-checked') == 'true') {
+      per_val = $(e).find('select').val();
+      last_date = $('input[name="' + $(e).attr('data-for') + '"]').val();
+      switch ($(e).attr('data-for')) {
+        case 'last_vacine_date':
+          text = 'Хозяин, пора делать вакцинацию!';
+          name = 'Вакцинация';
+          break;
+        case 'worm_date':
+          text = 'Хозяин, защити меня от глистов!';
+          name = 'Обработка от глистов';
+          break;
+        case 'birth_date':
+          text = 'Поздравляем! У Вашего питомца сегодня день рождения!';
+          name = 'День рождения';
+          break;
+      }
+      var per = parseInt(per_val);
+      var step = 2629746000; // 1 month
+      var cur_date = moment(last_date).valueOf();
+      var date = new Date(moment(checkEventTime(cur_date, per * step)).toISOString());
+      var data = 'name=' + name + '&pet_id=' + id + '&drug=&drug_name=&datetime=' + last_date + '&notify=' + per_val + '&comment=&is_notify=1';
+      sendRequest('/memento/save', data, 'post', function (ev) {
+        var options = {
+          id: parseInt(ev.result),
+          text: text,
+          at: date
+        };
+        console.log(options);
+        if (typeof cordova != 'undefined') {
+          cordova.plugins.notification.local.schedule(options);
+        }
+        updateEventsList();
+      });
+    }
+  });
+  updatePetList();
+  switchTo('pet_list');
+}
+
 function switchToItem(screen, params) {
   var gift = APP_DATA.gifts[params.id];
   screen.find('.gift_photo img').attr('src', imageIdtoUrl(gift.img));
@@ -512,7 +582,8 @@ function switchToItem(screen, params) {
   } else {
     screen.find('.fake_submit_button').addClass('disabled');
   }
-  screen.find('.gift_status_percent span').html(p);
+  var points = gift.points < APP_DATA.points_summary ? gift.points : APP_DATA.points_summary;
+  screen.find('.gift_status_percent span').html(points);
   screen.find('.gift_status_overlay').css('height', p + '%');
   screen.find('.fake_submit_button').attr('data-param', '{"gift_id": ' + gift.id + '}')
 }
@@ -623,6 +694,7 @@ function updatePetList() {
   });
 }
 function updateEventsList(is_local) {
+  APP_DATA.proccessed_ids = [];
   if (!is_local) {
     sendRequest('/memento/list', '', 'get', function(d) {
       var events = d.result;
@@ -641,7 +713,10 @@ function updateEventsList(is_local) {
     if (typeof cordova != 'undefined') {
       $('#events_list_wrapper').html('');
       for (var i in events) {
-        printNotify(events[i], i);
+        if (APP_DATA.proccessed_ids.indexOf(i) == -1) {
+          printNotify(events[i], i);
+          APP_DATA.proccessed_ids.push(i);
+        }
       }
     } else {
       for (var i in events) {
@@ -652,7 +727,7 @@ function updateEventsList(is_local) {
           obj[p] = events[i][p];
         }
         obj.id = i;
-        var date = moment(events[i].datetime).format("DD.MM.YYYY, HH:mm");
+        var date = moment(events[i].datetime).format("DD.MM.YYYY");
         if (events[i].is_notify == 1) {
           swich.find('button').attr('aria-checked', 'true');
           swich.find('.toggle-icon').addClass('toggle-checked');
@@ -683,35 +758,36 @@ function printNotify(event, i) {
   }
   obj.id = i;
   var id = parseInt(i);
-
-  cordova.plugins.notification.local.isPresent(id, function (present) {
-    if (present) {
-      cordova.plugins.notification.local.get(id, function (notif) {
-        if (event.is_notify == 1) {
-          swich.find('button').attr('aria-checked', 'true');
-          swich.find('.toggle-icon').addClass('toggle-checked');
-        } else {
-          swich.find('button').attr('aria-checked', 'false');
-          swich.find('.toggle-icon').removeClass('toggle-checked');
-        }
-        var date = moment(notif.at * 1000).format("DD.MM.YYYY, HH:mm");
+  setTimeout(function() {
+    cordova.plugins.notification.local.isPresent(id, function (present) {
+      if (present) {
+        cordova.plugins.notification.local.get(id, function (notif) {
+          if (event.is_notify == 1) {
+            swich.find('button').attr('aria-checked', 'true');
+            swich.find('.toggle-icon').addClass('toggle-checked');
+          } else {
+            swich.find('button').attr('aria-checked', 'false');
+            swich.find('.toggle-icon').removeClass('toggle-checked');
+          }
+          var date = moment(notif.at * 1000).format("DD.MM.YYYY");
+          $('#events_list_wrapper').append("" +
+            "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
+            '<div class="event_name_self">' + event.name + '</div>' +
+            '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
+            "</div>");
+        });
+      } else {
+        swich.find('button').attr('aria-checked', 'false');
+        swich.find('.toggle-icon').removeClass('toggle-checked');
+        var date = moment(event.datetime).format("DD.MM.YYYY");
         $('#events_list_wrapper').append("" +
           "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
           '<div class="event_name_self">' + event.name + '</div>' +
           '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
           "</div>");
-      });
-    } else {
-      swich.find('button').attr('aria-checked', 'false');
-      swich.find('.toggle-icon').removeClass('toggle-checked');
-      var date = moment(event.datetime).format("DD.MM.YYYY, HH:mm");
-      $('#events_list_wrapper').append("" +
-        "<div class='event_item switch_screen events_item_" + i + "' data-to='event_form' data-id='" + i + "' data-param='" + JSON.stringify(obj) + "'>"+
-        '<div class="event_name_self">' + event.name + '</div>' +
-        '<div class="event_bot_line"><div class="event_list_date">' + date + '</div><div class="event_list_check">' + swich.prop("outerHTML") + '</div></div>'+
-        "</div>");
-    }
-  });
+      }
+    });
+  }, 300);
 }
 
 function checkReg(switchScr) {
@@ -733,10 +809,8 @@ function checkReg(switchScr) {
   if (switchScr) {
     if (in_reg) {
       switchTo('event_main');
-      $('.footer_nav.icon4').addClass('active');
     } else {
       switchTo('pet_list');
-      $('.footer_nav.icon3').addClass('active');
     }
   }
   return in_reg;
@@ -778,11 +852,12 @@ function addEventNotify(d, name) {
     at: date
   };
   if (typeof cordova != 'undefined') {
-    cordova.plugins.notification.local.cancel(parseInt(d.result));
     cordova.plugins.notification.local.schedule(options);
   }
   IonicAlert('Успешно', 'Уведомление добавлено');
   $("#add_event")[0].reset();
+  updateEventsList();
+  switchTo('events_list');
 }
 
 function switchTo(screen, params, func, isAuto) {
@@ -797,10 +872,12 @@ function switchTo(screen, params, func, isAuto) {
     $('.header .nav_header').html(to_elem.find('.nav_header').html()).show();
   }
   if (to_elem.find('form').length && to_elem.find('form').attr('id') != 'edit_personal') {
-    to_elem.find('form')[0].reset();
+    if (to_elem.find('form').attr('id') != 'register_form')
+      to_elem.find('form')[0].reset();
     to_elem.find('.get_image_wrapper').removeClass('active').removeAttr('style');
     to_elem.find('.sex_block').removeClass('active');
-    to_elem.find('#species_selector laevents_list_wrapperel').removeClass('checked').find('input').prop('checked', false);
+    to_elem.find('#species_selector label').removeClass('checked').find('input').prop('checked', false);
+    to_elem.find('#notify_drug_name_wrapper').hide();
     to_elem.find('#worm_drug_selector, #breed_selector').html('').attr('disabled', 'disabled');
     to_elem.find('#drug_care_text').hide();
     to_elem.find('input[name="img"], input[name="id"]').val('');
@@ -824,8 +901,10 @@ function switchTo(screen, params, func, isAuto) {
           $('.remove_event').show().attr('data-params', 'id=' + params.id);
           if (params.name == 'Вакцинация') {
             $('#notify_drug_selector').val('000').trigger('change');
+            $('#notify_drug_wrapper').hide();
           } else {
             $('#notify_drug_selector').val('0').trigger('change');
+            $('#notify_drug_wrapper').show();
           }
           break;
         case 'text_page':
@@ -841,9 +920,8 @@ function switchTo(screen, params, func, isAuto) {
             to_elem.find('input[name="' + p + '"]').val(params[p]).parent().css('background-image', 'url("' + imageIdtoUrl(params[p]) + '")').addClass('active');
             break;
           case 'datetime':
-          case 'notify':
             if (params[p]) {
-              var time = moment(params[p], 'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DDTHH:mm');
+              var time = moment(params[p], 'YYYY-MM-DD').format('YYYY-MM-DD');
               to_elem.find('input[name="' + p + '"]').siblings('input').val(time).removeAttr('disabled');
               to_elem.find('input[name="' + p + '"]').parents('.input_wrapper').find('button').attr('aria-checked', 'true');
               to_elem.find('input[name="' + p + '"]').parents('.input_wrapper').find('.toggle-icon').addClass('toggle-checked');
@@ -865,6 +943,8 @@ function switchTo(screen, params, func, isAuto) {
   setTimeout(function() {
     $('.section_wrapper').removeClass('active');
     to_elem.addClass('active');
+    $('.switch_screen').removeClass('active');
+    $('.switch_screen[data-to="' + screen + '"]').addClass('active');
     if (typeof isAuto == 'undefined')
       ScreensHistory.push({screen: screen, func: func, params: params});
   }, 100);
@@ -916,8 +996,11 @@ function sendRequest(path, params, method, callback) {
     if (params != '' || token != '') is_test = '&is_test=1';
     else is_test = 'is_test=1';
   }
+  var fp;
+  if (path.indexOf('http') > -1) fp = path;
+  else fp = API_URL + path;
   $.ajax({
-    url: API_URL + path,
+    url: fp,
     data: params + token + is_test,
     type: method,
     success: function(d) {

@@ -114,8 +114,13 @@ a {
   font-size: 20px;
   text-align: center;
   font-family: 'AGLettericaCondensedCBold';
-  padding: 8px 0;
   color: #573f34;
+  max-width: 250px;
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .section_wrapper {
   display: none;
@@ -419,6 +424,9 @@ label.dog {
   line-height: 20px;
   height: 50px;
 }
+.screen_events_list .fake_submit_button {
+  font-size: 17px;
+}
 .fake_submit_button.disabled {
   opacity: 0.5;
   background: #aaa;
@@ -499,10 +507,10 @@ label.dog {
 .screen_add_event .add_event_card:nth-child(2) {
   background-image: url("../assets/images/proc2.png");
 }
-.screen_add_event .add_event_card:nth-child(2) {
+.screen_add_event .add_event_card:nth-child(3) {
   background-image: url("../assets/images/proc3.png");
 }
-.screen_add_event .add_event_card:nth-child(3) {
+.screen_add_event .add_event_card:nth-child(4) {
   background-image: url("../assets/images/proc4.png");
 }
 .screen_add_event .add_event_card:nth-child(4) {
@@ -515,7 +523,7 @@ label.dog {
   background-image: url("../assets/images/lib1.png");
 }
 .screen_art_categories .add_event_card:nth-child(2) {
-  background-image: url("../assets/images/proc1.png");
+  background-image: url("../assets/images/lib4.");
 }
 .screen_art_categories .add_event_card:nth-child(3) {
   background-image: url("../assets/images/lib2.png");
@@ -745,9 +753,15 @@ label.dog {
   left: 0;
   bottom: 24px;
   color: #ffffff;
-  font-size: 40px;
+  font-size: 20px;
   font-family: 'AGLettericaCondensedCBold';
   text-align: center;
+}
+.gift_status_percent span {
+  display: block;
+  text-align: center;
+  line-height: 1;
+  font-size: 40px;
 }
 
 #old_user_password, .regions_content {
@@ -818,6 +832,9 @@ label.dog {
 .we_in_net_content a {
   display: block;
   margin-top: 10px;
+}
+#pet_another_drug {
+  display: none;
 }
 
 @media screen and (max-width: 370px) {
