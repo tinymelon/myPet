@@ -523,7 +523,7 @@ label.dog {
   background-image: url("../assets/images/lib1.png");
 }
 .screen_art_categories .add_event_card:nth-child(2) {
-  background-image: url("../assets/images/lib4.");
+  background-image: url("../assets/images/lib4.jpg");
 }
 .screen_art_categories .add_event_card:nth-child(3) {
   background-image: url("../assets/images/lib2.png");
@@ -840,6 +840,11 @@ label.dog {
 @media screen and (max-width: 370px) {
   .submit_button, .reg_btn, .fake_submit_button, .remove_btn {
     font-size: 16px;
+  }
+  .screen_events_list .fake_submit_button {
+    font-size: 14px;
+    padding-left: 0;
+    padding-right: 0;
   }
   #menu_wrapper {
     width: 100%;

@@ -1,4 +1,4 @@
-var API_URL = 'https://growthof.me/heart';
+var API_URL = 'http://bayer.k0o.ru';
 var APP_DATA = {};
 var IS_TEST = false;
 var TOUCH_X, TOUCH_Y, IS_MOVING;
@@ -57,7 +57,7 @@ document.addEventListener("deviceready", function() {
           inp.val(d.result);
           _this.css('background-image', 'url("' + url + '")').addClass('active').removeClass('loading');
         }
-
+``
         var ft = new FileTransfer();
         _this.addClass('loading');
         ft.upload(imageData, encodeURI(API_URL + '/pet/saveImg'), win, failLoad, options);
